@@ -1,0 +1,89 @@
+/* ============================================================
+   追加スタイル（main.css とは別管理。ビルド不要で手書き）
+   ============================================================ */
+
+/* 派手なCTAボタン：グラデ＋発光＋光沢スイープ＋微振動 */
+.btn-flashy {
+  position: relative;
+  overflow: hidden;
+  color: #fff !important;
+  background: linear-gradient(100deg, #fbc02d 0%, #f57c20 45%, #ff7f66 100%) !important;
+  background-size: 200% 100% !important;
+  border: 2px solid #1f1f1f !important;
+  box-shadow: 0 0 0 0 rgba(245, 124, 32, 0.55), 6px 6px 0 0 rgba(31, 31, 31, 1) !important;
+  animation: btn-flashy-glow 2.2s ease-in-out infinite, btn-flashy-shift 4s linear infinite;
+  transition: transform 0.18s ease, box-shadow 0.18s ease;
+}
+.btn-flashy:hover {
+  transform: translateY(-2px) scale(1.03);
+  box-shadow: 0 0 0 6px rgba(245, 124, 32, 0.18), 8px 8px 0 0 rgba(31, 31, 31, 1) !important;
+}
+.btn-flashy:active {
+  transform: translateY(1px) scale(0.99);
+}
+
+/* 光沢のスイープ */
+.btn-flashy::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -120%;
+  width: 60%;
+  height: 100%;
+  background: linear-gradient(120deg, transparent, rgba(255, 255, 255, 0.65), transparent);
+  transform: skewX(-20deg);
+  animation: btn-flashy-shine 3s ease-in-out infinite;
+  pointer-events: none;
+}
+
+@keyframes btn-flashy-glow {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(245, 124, 32, 0.55), 6px 6px 0 0 rgba(31, 31, 31, 1); }
+  50%      { box-shadow: 0 0 26px 6px rgba(245, 124, 32, 0.55), 6px 6px 0 0 rgba(31, 31, 31, 1); }
+}
+@keyframes btn-flashy-shift {
+  0%   { background-position: 0% 50%; }
+  100% { background-position: 200% 50%; }
+}
+@keyframes btn-flashy-shine {
+  0%   { left: -120%; }
+  55%  { left: 130%; }
+  100% { left: 130%; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .btn-flashy,
+  .btn-flashy::after { animation: none; }
+}
+
+/* Contact Form 7（マイページ内お問い合わせ） */
+.cf7-wrap .cf7-field { margin-bottom: 14px; }
+.cf7-wrap .tc-label { display: block; font-size: 0.875rem; font-weight: 700; color: #2b2620; margin-bottom: 6px; }
+.cf7-wrap .req { color: #ff7f66; }
+.cf7-wrap .wpcf7-form-control-wrap { display: block; }
+.cf7-wrap input.tc-input,
+.cf7-wrap textarea.tc-input {
+  width: 100%;
+  border: 2px solid rgba(31, 31, 31, 0.15);
+  border-radius: 12px;
+  background: #fff;
+  padding: 10px 14px;
+  color: #2b2620;
+  font-size: 1rem;
+  outline: none;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+.cf7-wrap input.tc-input:focus,
+.cf7-wrap textarea.tc-input:focus {
+  border-color: #f57c20;
+  box-shadow: 0 0 0 3px rgba(245, 124, 32, 0.15);
+}
+.cf7-wrap .cf7-submit { margin-top: 18px; }
+.cf7-wrap .wpcf7-spinner { margin: 0 8px; }
+.cf7-wrap .wpcf7-response-output {
+  margin: 16px 0 0;
+  border-radius: 12px;
+  padding: 12px 16px;
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+.cf7-wrap .wpcf7-not-valid-tip { color: #c2452c; font-size: 0.8rem; font-weight: 700; }

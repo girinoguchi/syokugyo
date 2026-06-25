@@ -1,0 +1,391 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  /* ロゴパレット */
+  --color-yellow: #fbc02d;
+  --color-orange: #f57c20;
+  --color-green: #8dc63f;
+  --color-coral: #ff7f66;
+  --color-bg-dark: #1a1a20;
+  --color-bg-offwhite: #fffdf7;
+  --color-ink: #2b2620;
+  --color-text-on-dark: #ffffff;
+  --color-text-on-light: #2b2620;
+
+  /* 明背景上のテキスト用（WCAG AA 4.5:1 以上） */
+  --color-orange-accessible: #b35e12;
+  --color-coral-accessible: #c94e38;
+  --color-green-accessible: #5a8f24;
+
+  /* レガシー互換（Tailwind telecareer-*） */
+  --foreground: var(--color-text-on-light);
+  --background: var(--color-bg-offwhite);
+  --telecareer-header: var(--color-bg-offwhite);
+  --telecareer-footer: var(--color-bg-dark);
+  --telecareer-accent: var(--color-yellow);
+  --telecareer-accent-hover: var(--color-orange);
+}
+
+body {
+  color: var(--foreground);
+  background: var(--background);
+  font-family: "Hiragino Kaku Gothic ProN", "Hiragino Sans", Meiryo, sans-serif;
+}
+
+@layer components {
+  /* ===== 面 ===== */
+  .bg-telecareer-surface {
+    background-color: var(--color-bg-offwhite);
+  }
+
+  .bg-telecareer-dark {
+    background-color: var(--color-bg-dark);
+    color: var(--color-text-on-dark);
+  }
+
+  /* ヒーロー：オフホワイト + ロゴ色のソフトグロー */
+  .bg-telecareer-hero {
+    background-color: var(--color-bg-offwhite);
+    background-image:
+      radial-gradient(ellipse 70% 50% at 5% 12%, rgba(251, 192, 45, 0.30), transparent 55%),
+      radial-gradient(ellipse 55% 45% at 95% 18%, rgba(255, 127, 102, 0.22), transparent 52%),
+      radial-gradient(ellipse 55% 45% at 92% 88%, rgba(245, 124, 32, 0.16), transparent 50%),
+      radial-gradient(ellipse 45% 40% at 10% 88%, rgba(141, 198, 63, 0.16), transparent 50%);
+  }
+
+  /* ===== ヒーロー：エンタメ“ステージ”ダーク基調 + スポットライト ===== */
+  .bg-hero-stage {
+    position: relative;
+    background-color: #0b0b11;
+    background-image:
+      radial-gradient(ellipse 70% 55% at 50% -8%, rgba(251, 192, 45, 0.28), transparent 60%),
+      radial-gradient(ellipse 45% 65% at 10% 115%, rgba(255, 127, 102, 0.22), transparent 60%),
+      radial-gradient(ellipse 45% 65% at 90% 115%, rgba(141, 198, 63, 0.16), transparent 60%),
+      radial-gradient(circle at 50% 4%, rgba(245, 124, 32, 0.22), transparent 42%);
+  }
+
+  /* 上部からの粒状（ステージのざらつき）と下部の床反射 */
+  .bg-hero-stage::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background-image: radial-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+    background-size: 3px 3px;
+    opacity: 0.5;
+    pointer-events: none;
+  }
+
+  /* スポットライトの光線（上部中央から扇状に広がる円錐） */
+  .hero-beam {
+    position: absolute;
+    top: -14%;
+    left: 50%;
+    width: 46%;
+    height: 130%;
+    background: linear-gradient(to bottom, rgba(251, 192, 45, 0.30), rgba(251, 192, 45, 0) 72%);
+    clip-path: polygon(46% 0, 54% 0, 100% 100%, 0 100%);
+    filter: blur(10px);
+    transform-origin: top center;
+    pointer-events: none;
+    mix-blend-mode: screen;
+  }
+
+  .hero-beam-left {
+    transform: translateX(-50%) rotate(-22deg);
+  }
+
+  .hero-beam-right {
+    background: linear-gradient(to bottom, rgba(255, 127, 102, 0.26), rgba(255, 127, 102, 0) 72%);
+    transform: translateX(-50%) rotate(22deg);
+  }
+
+  .hero-beam-center {
+    background: linear-gradient(to bottom, rgba(255, 255, 255, 0.16), rgba(255, 255, 255, 0) 70%);
+    transform: translateX(-50%) rotate(0deg);
+    width: 34%;
+  }
+
+  /* ダークヒーロー上のラベル */
+  .tc-eyebrow-dark {
+    display: inline-block;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    padding: 0.3rem 0.85rem;
+    border-radius: 9999px;
+    border: 1.5px solid rgba(255, 255, 255, 0.35);
+    background: rgba(255, 255, 255, 0.06);
+    color: rgba(255, 255, 255, 0.92);
+    backdrop-filter: blur(4px);
+  }
+
+  /* REC バッジ（撮影現場演出） */
+  .tc-rec-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    font-size: 0.72rem;
+    color: #fff;
+    padding: 0.3rem 0.7rem;
+    border-radius: 9999px;
+    border: 1.5px solid rgba(255, 255, 255, 0.4);
+    background: rgba(255, 255, 255, 0.06);
+    backdrop-filter: blur(4px);
+  }
+
+  .tc-rec-dot {
+    width: 0.6rem;
+    height: 0.6rem;
+    border-radius: 9999px;
+    background: #ff3b30;
+    box-shadow: 0 0 10px rgba(255, 59, 48, 0.9);
+    animation: tc-blink 1.2s steps(1, end) infinite;
+  }
+
+  @keyframes tc-blink {
+    0%, 60% { opacity: 1; }
+    61%, 100% { opacity: 0.15; }
+  }
+
+  /* ダーク背景用アウトラインボタン */
+  .btn-outline-light {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+    background: rgba(255, 255, 255, 0.06);
+    color: #ffffff;
+    border: 2px solid rgba(255, 255, 255, 0.7);
+    border-radius: 9999px;
+    box-shadow: 3px 3px 0 rgba(0, 0, 0, 0.4);
+    transition: transform 0.12s ease, box-shadow 0.12s ease, background-color 0.12s ease;
+  }
+
+  .btn-outline-light:hover {
+    background-color: #ffffff;
+    color: var(--color-ink);
+    transform: translate(-1px, -1px);
+    box-shadow: 4px 4px 0 rgba(0, 0, 0, 0.4);
+  }
+
+  /* ===== カード（ポップ：太めの枠 + 色付きオフセット影） ===== */
+  .tc-card {
+    background-color: #ffffff;
+    border: 2px solid var(--color-ink);
+    border-radius: 1.5rem;
+    box-shadow: 6px 6px 0 rgba(43, 38, 32, 0.12);
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+  }
+
+  .tc-card-hover:hover {
+    transform: translate(-2px, -2px);
+    box-shadow: 9px 9px 0 rgba(43, 38, 32, 0.16);
+  }
+
+  .tc-card-yellow {
+    box-shadow: 6px 6px 0 rgba(251, 192, 45, 0.55);
+  }
+  .tc-card-orange {
+    box-shadow: 6px 6px 0 rgba(245, 124, 32, 0.5);
+  }
+  .tc-card-green {
+    box-shadow: 6px 6px 0 rgba(141, 198, 63, 0.5);
+  }
+  .tc-card-coral {
+    box-shadow: 6px 6px 0 rgba(255, 127, 102, 0.5);
+  }
+
+  /* ソフト版（枠なし・影だけ） */
+  .tc-card-soft {
+    background-color: #ffffff;
+    border-radius: 1.25rem;
+    border: 1px solid rgba(43, 38, 32, 0.08);
+    box-shadow: 0 8px 28px rgba(245, 124, 32, 0.08);
+  }
+
+  /* ===== ボタン ===== */
+  .btn-cta {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+    background: linear-gradient(135deg, var(--color-yellow) 0%, var(--color-orange) 100%);
+    color: var(--color-ink);
+    border: 2px solid var(--color-ink);
+    border-radius: 9999px;
+    box-shadow: 3px 3px 0 var(--color-ink);
+    transition: transform 0.12s ease, box-shadow 0.12s ease, filter 0.12s ease;
+  }
+
+  .btn-cta:hover:not(:disabled) {
+    transform: translate(-1px, -1px);
+    box-shadow: 4px 4px 0 var(--color-ink);
+    filter: brightness(1.02);
+  }
+
+  .btn-cta:active:not(:disabled) {
+    transform: translate(2px, 2px);
+    box-shadow: 1px 1px 0 var(--color-ink);
+  }
+
+  .btn-cta:disabled {
+    opacity: 0.5;
+  }
+
+  .btn-coral {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+    background: var(--color-coral);
+    color: #ffffff;
+    border: 2px solid var(--color-ink);
+    border-radius: 9999px;
+    box-shadow: 3px 3px 0 var(--color-ink);
+    transition: transform 0.12s ease, box-shadow 0.12s ease;
+  }
+
+  .btn-coral:hover:not(:disabled) {
+    transform: translate(-1px, -1px);
+    box-shadow: 4px 4px 0 var(--color-ink);
+  }
+
+  .btn-coral:active:not(:disabled) {
+    transform: translate(2px, 2px);
+    box-shadow: 1px 1px 0 var(--color-ink);
+  }
+
+  /* アウトライン（明背景） */
+  .btn-outline-coral {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+    background: #ffffff;
+    color: var(--color-ink);
+    border: 2px solid var(--color-ink);
+    border-radius: 9999px;
+    box-shadow: 3px 3px 0 rgba(43, 38, 32, 0.25);
+    transition: transform 0.12s ease, box-shadow 0.12s ease, background-color 0.12s ease;
+  }
+
+  .btn-outline-coral:hover {
+    background-color: var(--color-coral);
+    color: #ffffff;
+    transform: translate(-1px, -1px);
+    box-shadow: 4px 4px 0 var(--color-ink);
+  }
+
+  /* ===== 見出し ===== */
+  /* 日本語＋英語ラベル */
+  .tc-eyebrow {
+    display: inline-block;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    padding: 0.25rem 0.75rem;
+    border-radius: 9999px;
+    border: 2px solid var(--color-ink);
+  }
+
+  /* マーカー風ハイライト下線 */
+  .tc-marker {
+    background-image: linear-gradient(120deg, var(--color-yellow), var(--color-orange));
+    background-repeat: no-repeat;
+    background-position: 0 88%;
+    background-size: 100% 38%;
+    padding: 0 0.1em;
+  }
+
+  .tc-marker-green {
+    background-image: linear-gradient(120deg, var(--color-green), var(--color-green));
+  }
+  .tc-marker-coral {
+    background-image: linear-gradient(120deg, var(--color-coral), var(--color-coral));
+  }
+
+  /* セクション見出し下線（グラデ） */
+  .tc-section-heading {
+    display: inline-block;
+    padding-bottom: 0.4rem;
+    border-bottom: 4px solid transparent;
+    border-image: linear-gradient(to right, var(--color-yellow), var(--color-orange)) 1;
+  }
+
+  /* ===== リンク ===== */
+  .link-accent {
+    color: var(--color-orange-accessible);
+    font-weight: 600;
+    transition: color 0.2s ease;
+  }
+
+  .link-accent:hover {
+    color: var(--color-coral-accessible);
+    text-decoration: underline;
+  }
+
+  /* ヘッダーナビ */
+  .nav-link-light {
+    color: var(--color-ink);
+    opacity: 0.7;
+    font-weight: 600;
+    transition: color 0.2s ease, opacity 0.2s ease;
+  }
+
+  .nav-link-light:hover {
+    color: var(--color-orange-accessible);
+    opacity: 1;
+  }
+
+  /* ===== タグ／バッジ ===== */
+  .tag-pill {
+    display: inline-flex;
+    align-items: center;
+    font-size: 0.72rem;
+    font-weight: 700;
+    padding: 0.15rem 0.6rem;
+    border-radius: 9999px;
+    border: 1.5px solid var(--color-ink);
+  }
+
+  .tag-yellow { background-color: #fbc02d; color: var(--color-ink); }
+  .tag-orange { background-color: #f57c20; color: #ffffff; }
+  .tag-green  { background-color: #8dc63f; color: var(--color-ink); }
+  .tag-coral  { background-color: #ff7f66; color: #ffffff; }
+  .tag-plain  { background-color: #fff7e6; color: var(--color-ink); }
+
+  /* 役割バッジ（職種ごとに色分け） */
+  .role-AD { background-color: #fbc02d; color: var(--color-ink); }
+  .role-D  { background-color: #ff7f66; color: #ffffff; }
+  .role-P  { background-color: #8dc63f; color: var(--color-ink); }
+
+  /* ===== フォーム ===== */
+  .tc-input {
+    width: 100%;
+    background-color: #ffffff;
+    border: 2px solid var(--color-ink);
+    border-radius: 0.85rem;
+    padding: 0.55rem 0.85rem;
+    transition: box-shadow 0.12s ease, border-color 0.12s ease;
+  }
+
+  .tc-input:focus {
+    outline: none;
+    border-color: var(--color-orange);
+    box-shadow: 0 0 0 3px rgba(245, 124, 32, 0.25);
+  }
+
+  .tc-label {
+    display: block;
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: var(--color-ink);
+    margin-bottom: 0.3rem;
+  }
+}

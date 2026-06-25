@@ -1,0 +1,148 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ============================================================
+   エンジン テーマ 共通コンポーネント
+   ※ ビルド: npm run theme:build（assets/css/main.css を生成）
+   ============================================================ */
+
+@layer base {
+  html {
+    font-family: "Zen Kaku Gothic New", "Hiragino Kaku Gothic ProN", sans-serif;
+  }
+  body {
+    @apply bg-telecareer-surface text-ink;
+  }
+}
+
+@layer components {
+  /* カード */
+  .tc-card {
+    @apply bg-white rounded-2xl border-2 border-ink shadow-[4px_4px_0_0_rgba(31,31,31,1)];
+  }
+  .tc-card-soft {
+    @apply bg-white rounded-2xl border border-telecareer-orange/20 shadow-[0_8px_24px_rgba(120,90,70,0.08)];
+  }
+  .tc-card-hover {
+    @apply transition-transform duration-300 hover:-translate-y-1.5;
+  }
+
+  /* ボタン */
+  .btn-cta {
+    @apply inline-flex items-center justify-center gap-1.5 rounded-full bg-telecareer-orange text-white border-2 border-ink font-bold shadow-[4px_4px_0_0_rgba(31,31,31,1)] transition-transform duration-200 hover:-translate-y-0.5;
+  }
+  .btn-outline-coral {
+    @apply inline-flex items-center justify-center gap-1.5 rounded-full bg-white text-telecareer-ink border-2 border-ink font-bold transition-transform duration-200 hover:-translate-y-0.5;
+  }
+
+  /* タグ・ピル */
+  .tag-pill {
+    @apply inline-flex items-center rounded-full px-3 py-0.5 text-sm font-bold border border-transparent;
+  }
+  .tag-plain  { @apply bg-gray-100 text-gray-600; }
+  .tag-yellow { @apply bg-telecareer-yellow/20 text-orange-a11y; }
+  .tag-green  { @apply bg-telecareer-green/20 text-green-a11y; }
+  .tag-orange { @apply bg-telecareer-orange/15 text-orange-a11y; }
+  .tag-coral  { @apply bg-telecareer-coral/20 text-coral-a11y; }
+
+  /* 見出し装飾 */
+  .tc-eyebrow {
+    @apply inline-flex items-center rounded-full px-3 py-1 text-xs font-bold text-orange-a11y border-2 border-telecareer-orange/30;
+  }
+  .tc-marker {
+    @apply relative inline bg-gradient-to-t from-telecareer-yellow/50 to-transparent bg-[length:100%_42%] bg-no-repeat bg-bottom px-0.5;
+  }
+  .tc-section-heading {
+    @apply relative pb-2;
+  }
+  .tc-section-heading::after {
+    content: "";
+    @apply absolute left-1/2 -translate-x-1/2 bottom-0 w-12 h-1 rounded-full bg-telecareer-orange;
+  }
+  .link-accent {
+    @apply text-orange-a11y font-bold underline decoration-telecareer-orange/40 underline-offset-2 hover:decoration-telecareer-orange transition-colors;
+  }
+
+  /* フォーム */
+  .tc-input {
+    @apply w-full rounded-xl border-2 border-ink/15 bg-white px-3.5 py-2.5 text-ink outline-none transition focus:border-telecareer-orange focus:ring-2 focus:ring-telecareer-orange/20;
+  }
+  .tc-label {
+    @apply block text-sm font-bold text-telecareer-ink mb-1.5;
+  }
+}
+
+@layer utilities {
+  .text-coral-a11y  { color: #c2452c; }
+  .text-green-a11y  { color: #4e7d1f; }
+  .text-orange-a11y { color: #b35e12; }
+}
+
+/* ============================================================
+   トップビジュアル：流れるメディア実績ロゴ（マーキー）
+   ============================================================ */
+.logo-marquee {
+  display: flex;
+  width: 100%;
+  overflow: hidden;
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
+  mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
+}
+.logo-marquee__track {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: 16px;
+  padding-right: 16px;
+  animation: logo-scroll var(--marquee-duration, 80s) linear infinite;
+  will-change: transform;
+}
+.logo-marquee--reverse .logo-marquee__track {
+  animation-direction: reverse;
+}
+@keyframes logo-scroll {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-50%); }
+}
+.logo-tile {
+  flex: none;
+  width: 168px;
+  height: 96px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #fff;
+  border-radius: 14px;
+  border: 1px solid rgba(31, 31, 31, 0.08);
+  box-shadow: 0 6px 16px rgba(120, 90, 70, 0.08);
+  overflow: hidden;
+}
+.logo-tile img {
+  max-width: 86%;
+  max-height: 78%;
+  width: auto;
+  height: auto;
+  object-fit: contain;
+}
+
+/* 背景マーキー（控えめに） */
+.logo-marquee--bg {
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 12%, #000 88%, transparent);
+  mask-image: linear-gradient(90deg, transparent, #000 12%, #000 88%, transparent);
+}
+.logo-marquee--bg .logo-tile {
+  opacity: 0.55;
+  box-shadow: none;
+  border-color: rgba(31, 31, 31, 0.05);
+}
+
+/* ヒーローの可読性確保オーバーレイ（中央を濃く） */
+.tc-hero-veil {
+  background:
+    radial-gradient(ellipse 60% 60% at 50% 45%, rgba(255, 241, 233, 0.92) 0%, rgba(255, 241, 233, 0.7) 45%, rgba(255, 241, 233, 0.25) 75%, rgba(255, 241, 233, 0) 100%);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .logo-marquee__track { animation: none; }
+}
