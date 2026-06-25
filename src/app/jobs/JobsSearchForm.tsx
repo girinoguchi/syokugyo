@@ -12,6 +12,9 @@ import {
 } from "@/lib/types";
 import type { JobFilters } from "@/lib/types";
 
+const inputSm =
+  "w-full min-w-0 box-border bg-white border-2 border-ink rounded-lg px-2.5 py-1.5 text-sm transition-[box-shadow,border-color] focus:outline-none focus:border-telecareer-orange focus:shadow-[0_0_0_2px_rgba(245,124,32,0.2)]";
+
 export function JobsSearchForm({ filters }: { filters: JobFilters }) {
   const router = useRouter();
 
@@ -56,11 +59,14 @@ export function JobsSearchForm({ filters }: { filters: JobFilters }) {
   };
 
   return (
-    <>
-      <div className="flex flex-wrap gap-2 mb-5">
+    <div className="mb-6">
+      {/* 雇用形態タブ */}
+      <div className="flex flex-wrap gap-1.5 mb-3">
         <Link
           href={buildHref({ jobType: "" })}
-          className={`tag-pill ${!filters.jobType ? "tag-coral" : "tag-plain"}`}
+          className={`rounded-full px-2.5 py-0.5 text-xs font-bold border-2 border-ink transition-colors ${
+            !filters.jobType ? "bg-telecareer-coral text-white" : "bg-white text-ink hover:bg-gray-50"
+          }`}
         >
           すべて
         </Link>
@@ -68,97 +74,106 @@ export function JobsSearchForm({ filters }: { filters: JobFilters }) {
           <Link
             key={jobType}
             href={buildHref({ jobType })}
-            className={`tag-pill ${filters.jobType === jobType ? "tag-coral" : "tag-plain"}`}
+            className={`rounded-full px-2.5 py-0.5 text-xs font-bold border-2 border-ink transition-colors ${
+              filters.jobType === jobType ? "bg-telecareer-coral text-white" : "bg-white text-ink hover:bg-gray-50"
+            }`}
           >
             {jobType}
           </Link>
         ))}
       </div>
 
-      <form onSubmit={handleSubmit} className="tc-card-soft p-5 mb-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <div>
-          <label className="tc-label">キーワード</label>
-          <input
-            type="text"
-            name="q"
-            defaultValue={filters.q ?? ""}
-            className="tc-input"
-            placeholder="職種・番組名など"
-          />
+      <form
+        onSubmit={handleSubmit}
+        className="tc-card-soft p-3 sm:p-4 space-y-2.5"
+      >
+        {/* メイン行: キーワード + 主要フィルタ + 検索 */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-[1fr_9rem_9rem_auto] gap-2 items-end">
+          <div className="sm:col-span-2 lg:col-span-1">
+            <label className="sr-only" htmlFor="jobs-q">
+              キーワード
+            </label>
+            <input
+              id="jobs-q"
+              type="text"
+              name="q"
+              defaultValue={filters.q ?? ""}
+              className={inputSm}
+              placeholder="キーワード（職種・番組名など）"
+            />
+          </div>
+          <div>
+            <label className="sr-only" htmlFor="jobs-category">
+              職種
+            </label>
+            <select id="jobs-category" name="category" defaultValue={filters.category ?? ""} className={inputSm}>
+              <option value="">職種：すべて</option>
+              {JOB_CATEGORY_OPTIONS.map((category) => (
+                <option key={category} value={category}>
+                  {category}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label className="sr-only" htmlFor="jobs-area">
+              エリア
+            </label>
+            <select id="jobs-area" name="area" defaultValue={filters.area ?? ""} className={inputSm}>
+              <option value="">エリア：すべて</option>
+              {JOB_AREA_OPTIONS.map((area) => (
+                <option key={area} value={area}>
+                  {area}
+                </option>
+              ))}
+            </select>
+          </div>
+          <button type="submit" className="btn-cta px-4 py-1.5 text-sm font-bold whitespace-nowrap w-full sm:w-auto">
+            絞り込む
+          </button>
         </div>
-        <div>
-          <label className="tc-label">職種</label>
-          <select name="category" defaultValue={filters.category ?? ""} className="tc-input">
-            <option value="">すべて</option>
-            {JOB_CATEGORY_OPTIONS.map((category) => (
-              <option key={category} value={category}>
-                {category}
-              </option>
-            ))}
-          </select>
-        </div>
-        <div>
-          <label className="tc-label">エリア</label>
-          <select name="area" defaultValue={filters.area ?? ""} className="tc-input">
-            <option value="">すべて</option>
-            {JOB_AREA_OPTIONS.map((area) => (
-              <option key={area} value={area}>
-                {area}
-              </option>
-            ))}
-          </select>
-        </div>
-        <div>
-          <label className="tc-label">給与形態</label>
-          <select name="payType" defaultValue={filters.payType ?? ""} className="tc-input">
-            <option value="">すべて</option>
+
+        {/* サブ行: 給与・並び・未経験・リセット */}
+        <div className="flex flex-wrap items-center gap-2 pt-0.5 border-t border-ink/10">
+          <select name="payType" defaultValue={filters.payType ?? ""} className={`${inputSm} w-auto min-w-[7.5rem] flex-1 sm:flex-none`}>
+            <option value="">給与形態</option>
             {PAY_TYPE_OPTIONS.filter(Boolean).map((payType) => (
               <option key={payType} value={payType}>
                 {payType}
               </option>
             ))}
           </select>
-        </div>
-        <div>
-          <label className="tc-label">時給</label>
-          <select name="wageMin" defaultValue={filters.wageMin ?? ""} className="tc-input">
+          <select name="wageMin" defaultValue={filters.wageMin ?? ""} className={`${inputSm} w-auto min-w-[6.5rem] flex-1 sm:flex-none`}>
             {JOB_WAGE_MIN_OPTIONS.map((option) => (
               <option key={option.value || "all"} value={option.value}>
                 {option.label}
               </option>
             ))}
           </select>
-        </div>
-        <div>
-          <label className="tc-label">並び替え</label>
-          <select name="sort" defaultValue={filters.sort || "new"} className="tc-input">
+          <select name="sort" defaultValue={filters.sort || "new"} className={`${inputSm} w-auto min-w-[6.5rem] flex-1 sm:flex-none`}>
             {JOB_SORT_OPTIONS.map((option) => (
               <option key={option.value} value={option.value}>
                 {option.label}
               </option>
             ))}
           </select>
-        </div>
-        <div className="flex items-end">
-          <label className="flex items-center gap-2 cursor-pointer text-sm font-bold text-telecareer-ink">
+          <label className="flex items-center gap-1.5 cursor-pointer text-xs font-bold text-telecareer-ink whitespace-nowrap shrink-0">
             <input
               type="checkbox"
               name="inexperienced"
               defaultChecked={filters.inexperienced === "1"}
-              className="w-4 h-4 accent-telecareer-orange"
+              className="w-3.5 h-3.5 accent-telecareer-orange"
             />
-            未経験OKのみ
+            未経験OK
           </label>
-        </div>
-        <div className="flex items-end gap-2">
-          <button type="submit" className="btn-cta px-6 py-2.5 font-bold">
-            絞り込む
-          </button>
-          <Link href="/jobs" className="btn-outline-coral px-4 py-2.5 font-bold">
+          <Link
+            href="/jobs"
+            className="text-xs font-bold text-gray-500 hover:text-telecareer-coral whitespace-nowrap ml-auto"
+          >
             リセット
           </Link>
         </div>
       </form>
-    </>
+    </div>
   );
 }
