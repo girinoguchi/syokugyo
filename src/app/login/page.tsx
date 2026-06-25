@@ -12,7 +12,7 @@ type LoginPageProps = {
 export default async function LoginPage({ searchParams }: LoginPageProps) {
   const user = await getCurrentUser();
   if (user) {
-    redirect(searchParams?.redirect || "/mypage");
+    redirect(searchParams?.redirect || "/jobs");
   }
 
   return (

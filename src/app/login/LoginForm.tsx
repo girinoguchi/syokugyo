@@ -9,7 +9,7 @@ import { isDemoMode } from "@/lib/demo-auth";
 export function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const redirectTo = searchParams.get("redirect") || "/mypage";
+  const redirectTo = searchParams.get("redirect") || "/jobs";
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [email, setEmail] = useState("");
