@@ -7,7 +7,6 @@ import {
   JOB_CATEGORY_OPTIONS,
   JOB_SORT_OPTIONS,
   JOB_TYPE_OPTIONS,
-  JOB_WAGE_MIN_OPTIONS,
   PAY_TYPE_OPTIONS,
 } from "@/lib/types";
 import type { JobFilters } from "@/lib/types";
@@ -26,7 +25,6 @@ export function JobsSearchForm({ filters }: { filters: JobFilters }) {
     if (next.jobType) params.set("jobType", next.jobType);
     if (next.area) params.set("area", next.area);
     if (next.payType) params.set("payType", next.payType);
-    if (next.wageMin) params.set("wageMin", next.wageMin);
     if (next.inexperienced) params.set("inexperienced", next.inexperienced);
     if (next.sort && next.sort !== "new") params.set("sort", next.sort);
     const query = params.toString();
@@ -40,7 +38,6 @@ export function JobsSearchForm({ filters }: { filters: JobFilters }) {
     const category = (form.querySelector('[name="category"]') as HTMLSelectElement)?.value ?? "";
     const area = (form.querySelector('[name="area"]') as HTMLSelectElement)?.value ?? "";
     const payType = (form.querySelector('[name="payType"]') as HTMLSelectElement)?.value ?? "";
-    const wageMin = (form.querySelector('[name="wageMin"]') as HTMLSelectElement)?.value ?? "";
     const sort = (form.querySelector('[name="sort"]') as HTMLSelectElement)?.value ?? "new";
     const inexperienced = (form.querySelector('[name="inexperienced"]') as HTMLInputElement)?.checked
       ? "1"
@@ -52,7 +49,6 @@ export function JobsSearchForm({ filters }: { filters: JobFilters }) {
     if (category) params.set("category", category);
     if (area) params.set("area", area);
     if (payType) params.set("payType", payType);
-    if (wageMin) params.set("wageMin", wageMin);
     if (inexperienced) params.set("inexperienced", inexperienced);
     if (sort && sort !== "new") params.set("sort", sort);
     router.push(`/jobs?${params.toString()}`);
@@ -140,13 +136,6 @@ export function JobsSearchForm({ filters }: { filters: JobFilters }) {
             {PAY_TYPE_OPTIONS.filter(Boolean).map((payType) => (
               <option key={payType} value={payType}>
                 {payType}
-              </option>
-            ))}
-          </select>
-          <select name="wageMin" defaultValue={filters.wageMin ?? ""} className={`${inputSm} w-auto min-w-[6.5rem] flex-1 sm:flex-none`}>
-            {JOB_WAGE_MIN_OPTIONS.map((option) => (
-              <option key={option.value || "all"} value={option.value}>
-                {option.label}
               </option>
             ))}
           </select>
