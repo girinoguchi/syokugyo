@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { MediaLogoMarquee } from "@/components/MediaLogoMarquee";
+import { CategoryCard } from "@/components/CategoryCard";
 import {
   ABOUT_POINTS,
   CATEGORIES,
@@ -102,13 +103,7 @@ export default function HomePage() {
             </div>
             <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
               {CATEGORIES.map((c) => (
-                <div key={c.name} className="tc-card tc-card-hover p-6 flex items-start gap-4">
-                  <span className={`w-12 h-12 rounded-2xl border-2 border-ink shrink-0 ${c.ring}`} />
-                  <div>
-                    <h3 className="font-bold text-lg text-telecareer-ink">{c.name}</h3>
-                    <p className="mt-1 text-sm text-gray-600 leading-relaxed">{c.desc}</p>
-                  </div>
-                </div>
+                <CategoryCard key={c.name} category={c} />
               ))}
             </div>
             <div className="mt-10 text-center">

@@ -51,12 +51,48 @@ export function splitMediaLogosIntoRows(logos: MediaLogo[], rowCount = 5): Media
 }
 
 export const CATEGORIES = [
-  { name: "エキストラ", desc: "ドラマ・映画・CMの撮影に参加。未経験・学生も歓迎。", ring: "bg-telecareer-yellow" },
-  { name: "制作・AD", desc: "テレビ・映像制作のアシスタント。業界デビューの第一歩に。", ring: "bg-telecareer-orange" },
-  { name: "音響スタッフ", desc: "ライブ・イベントの音響設営やPA補助。研修ありの求人も。", ring: "bg-telecareer-coral" },
-  { name: "照明スタッフ", desc: "ステージ・撮影現場のライティング。光で空間を演出。", ring: "bg-telecareer-green" },
-  { name: "撮影・カメラ", desc: "番組・配信・Web動画の撮影サポートやカメラ補助。", ring: "bg-telecareer-yellow" },
-  { name: "イベント運営", desc: "コンサート・イベントの設営や運営スタッフ。単発も多数。", ring: "bg-telecareer-coral" },
+  {
+    name: "エキストラ",
+    desc: "ドラマ・映画・CMの撮影に参加。未経験・学生も歓迎。",
+    ring: "bg-telecareer-yellow",
+    image: "/img/categories/extra.png",
+    imageAlt: "ドラマ撮影現場で演技するエキストラの様子",
+  },
+  {
+    name: "制作・AD",
+    desc: "テレビ・映像制作のアシスタント。業界デビューの第一歩に。",
+    ring: "bg-telecareer-orange",
+    image: "/img/categories/production-ad.png",
+    imageAlt: "番組収録現場で進行を支える制作アシスタント",
+  },
+  {
+    name: "音響スタッフ",
+    desc: "ライブ・イベントの音響設営やPA補助。研修ありの求人も。",
+    ring: "bg-telecareer-coral",
+    image: "/img/categories/sound.png",
+    imageAlt: "ライブ会場でミキサーを操作する音響スタッフ",
+  },
+  {
+    name: "照明スタッフ",
+    desc: "ステージ・撮影現場のライティング。光で空間を演出。",
+    ring: "bg-telecareer-green",
+    image: "/img/categories/lighting.png",
+    imageAlt: "ステージ照明をコントロールする照明スタッフ",
+  },
+  {
+    name: "撮影・カメラ",
+    desc: "番組・配信・Web動画の撮影サポートやカメラ補助。",
+    ring: "bg-telecareer-yellow",
+    image: "/img/categories/camera.png",
+    imageAlt: "番組収録を撮影するカメラマン",
+  },
+  {
+    name: "イベント運営",
+    desc: "コンサート・イベントの設営や運営スタッフ。単発も多数。",
+    ring: "bg-telecareer-coral",
+    image: "/img/categories/event.png",
+    imageAlt: "野外フェス会場で設営・運営を行うイベントスタッフ",
+  },
 ];
 
 export const WORKS = [
