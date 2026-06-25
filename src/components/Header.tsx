@@ -26,11 +26,8 @@ export function Header({ user, profile, onLogout }: HeaderProps) {
         <nav className="ml-auto flex shrink-0 items-center gap-2 sm:gap-5 text-sm font-bold">
           {user ? (
             <>
-              <Link href="/jobs" className="nav-link-light font-medium hidden sm:inline tc-nav-tap">
+              <Link href="/jobs" className="btn-cta px-3 py-1.5 sm:px-4 sm:py-2 text-xs sm:text-sm font-bold whitespace-nowrap tc-nav-tap">
                 求人を探す
-              </Link>
-              <Link href="/mypage" className="nav-link-light font-medium tc-nav-tap whitespace-nowrap">
-                マイページ
               </Link>
               {profile?.role === "admin" && (
                 <>
