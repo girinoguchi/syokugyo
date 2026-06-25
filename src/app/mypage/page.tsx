@@ -27,7 +27,7 @@ export default async function Mypage() {
 
   const user = await getCurrentUser();
   if (!user) {
-    redirect("/login?redirect=/mypage");
+    redirect("/login");
   }
 
   const profile = await getCurrentProfile();

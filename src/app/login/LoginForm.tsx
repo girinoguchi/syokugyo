@@ -2,14 +2,12 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { isDemoMode } from "@/lib/demo-auth";
 
+const AFTER_LOGIN = "/jobs";
+
 export function LoginForm() {
-  const router = useRouter();
-  const searchParams = useSearchParams();
-  const redirectTo = searchParams.get("redirect") || "/jobs";
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [email, setEmail] = useState("");
@@ -46,7 +44,7 @@ export function LoginForm() {
           setError((data.error as string) || "ログインに失敗しました。再度お試しください。");
           return;
         }
-        window.location.assign(redirectTo);
+        window.location.assign(AFTER_LOGIN);
         return;
       }
 
@@ -59,7 +57,7 @@ export function LoginForm() {
         setError(signInError.message + " 内容を修正して再度送信してください。");
         return;
       }
-      window.location.assign(redirectTo);
+      window.location.assign(AFTER_LOGIN);
     } catch (err) {
       setError(
         err instanceof Error ? err.message : "予期せぬエラーが発生しました。内容を確認して再度送信してください。"

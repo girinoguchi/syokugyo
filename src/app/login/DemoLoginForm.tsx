@@ -4,13 +4,9 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { loadClientSession, saveClientSession } from "@/lib/demo-client-session";
 
-export function DemoLoginForm({
-  redirectTo,
-  errorCode,
-}: {
-  redirectTo: string;
-  errorCode?: string;
-}) {
+const AFTER_LOGIN = "/jobs";
+
+export function DemoLoginForm({ errorCode }: { errorCode?: string }) {
   const [submitting, setSubmitting] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -23,13 +19,9 @@ export function DemoLoginForm({
   );
 
   useEffect(() => {
-    // 既に localStorage にセッションがあれば遷移先へ
     if (loadClientSession()) {
-      const target =
-        redirectTo && redirectTo.startsWith("/") && !redirectTo.startsWith("//") ? redirectTo : "/jobs";
-      window.location.assign(target);
+      window.location.assign(AFTER_LOGIN);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -61,14 +53,10 @@ export function DemoLoginForm({
         setSubmitting(false);
         return;
       }
-      // Cookieに依存せず、セッションを localStorage に保存（iOS Brave等のCookieブロック対策）
       if (data.session) {
         saveClientSession(data.session);
       }
-      const target = redirectTo && redirectTo.startsWith("/") && !redirectTo.startsWith("//")
-        ? redirectTo
-        : "/jobs";
-      window.location.assign(target);
+      window.location.assign(AFTER_LOGIN);
     } catch {
       setError("通信に失敗しました。電波の良い場所で再度お試しください。");
       setSubmitting(false);
