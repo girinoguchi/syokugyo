@@ -6,7 +6,12 @@ export function DemoBanner() {
 
   return (
     <div className="bg-amber-100 border-b-2 border-amber-500 text-amber-950 px-4 py-2.5 text-sm text-center">
-      <p className="font-bold">デモモード — Supabase 未接続のプレビュー環境です</p>
+      <p className="font-bold">
+        デモモード — Supabase 未接続のプレビュー環境です
+        {process.env.NEXT_PUBLIC_BUILD_ID ? (
+          <span className="ml-2 font-mono text-xs opacity-80">（ビルド: {process.env.NEXT_PUBLIC_BUILD_ID}）</span>
+        ) : null}
+      </p>
       <p className="mt-1 text-xs sm:text-sm">
         テストログイン:{" "}
         {DEMO_ACCOUNTS.map((account, index) => (
