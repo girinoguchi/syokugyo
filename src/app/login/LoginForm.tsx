@@ -46,8 +46,7 @@ export function LoginForm() {
           setError((data.error as string) || "ログインに失敗しました。再度お試しください。");
           return;
         }
-        router.push(redirectTo);
-        router.refresh();
+        window.location.assign(redirectTo);
         return;
       }
 
@@ -60,8 +59,7 @@ export function LoginForm() {
         setError(signInError.message + " 内容を修正して再度送信してください。");
         return;
       }
-      router.push(redirectTo);
-      router.refresh();
+      window.location.assign(redirectTo);
     } catch (err) {
       setError(
         err instanceof Error ? err.message : "予期せぬエラーが発生しました。内容を確認して再度送信してください。"

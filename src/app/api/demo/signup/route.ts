@@ -1,5 +1,4 @@
 import { NextResponse } from "next/server";
-import { cookies } from "next/headers";
 import { getDemoProfile, setDemoProfile } from "@/lib/demo-store";
 import { createDemoSessionPayload, demoSessionCookieOptions, encodeDemoSessionCookie } from "@/lib/demo-session";
 
@@ -26,7 +25,6 @@ export async function POST(req: Request) {
     phone,
     user_type,
     interested_categories,
-    newsletter_opt_in,
   } = body;
 
   const profile = {
@@ -46,8 +44,7 @@ export async function POST(req: Request) {
   setDemoProfile(email, profile);
 
   const session = createDemoSessionPayload(profile);
-  const cookieStore = await cookies();
-  cookieStore.set("demo_session", encodeDemoSessionCookie(session), demoSessionCookieOptions(req));
-
-  return NextResponse.json({ ok: true });
+  const response = NextResponse.json({ ok: true });
+  response.cookies.set("demo_session", encodeDemoSessionCookie(session), demoSessionCookieOptions(req));
+  return response;
 }

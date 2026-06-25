@@ -24,8 +24,8 @@ export function createDemoSessionPayload(stored: {
 }
 
 export function demoSessionCookieOptions(req: Request) {
-  const proto = req.headers.get("x-forwarded-proto");
-  const secure = proto === "https" || process.env.NODE_ENV === "production";
+  const proto = req.headers.get("x-forwarded-proto") ?? "";
+  const secure = proto.split(",")[0].trim() === "https";
   return {
     path: "/",
     httpOnly: true,

@@ -83,8 +83,7 @@ export default function SignupPage() {
           setError((data.error as string) || "登録に失敗しました。再度お試しください。");
           return;
         }
-        router.push("/mypage");
-        router.refresh();
+        window.location.assign("/mypage");
         return;
       }
 
@@ -120,8 +119,7 @@ export default function SignupPage() {
         setError(profileError.message + " 内容を修正して再度送信してください。");
         return;
       }
-      router.push("/mypage");
-      router.refresh();
+      window.location.assign("/mypage");
     } catch (err) {
       setError(
         err instanceof Error ? err.message : "予期せぬエラーが発生しました。内容を確認して再度送信してください。"

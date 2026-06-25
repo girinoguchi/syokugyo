@@ -1,5 +1,4 @@
 import { NextResponse } from "next/server";
-import { cookies } from "next/headers";
 import { getDemoProfile } from "@/lib/demo-store";
 import { createDemoSessionPayload, demoSessionCookieOptions, encodeDemoSessionCookie } from "@/lib/demo-session";
 
@@ -18,8 +17,7 @@ export async function POST(req: Request) {
   }
 
   const session = createDemoSessionPayload(stored);
-  const cookieStore = await cookies();
-  cookieStore.set("demo_session", encodeDemoSessionCookie(session), demoSessionCookieOptions(req));
-
-  return NextResponse.json({ ok: true });
+  const response = NextResponse.json({ ok: true });
+  response.cookies.set("demo_session", encodeDemoSessionCookie(session), demoSessionCookieOptions(req));
+  return response;
 }
