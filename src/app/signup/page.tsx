@@ -127,14 +127,14 @@ export default function SignupPage() {
   return (
     <div className="min-h-screen flex flex-col bg-telecareer-surface">
       <Header />
-      <main className="mx-auto max-w-md px-4 py-14 flex-1 w-full">
+      <main className="mx-auto max-w-md px-4 py-14 flex-1 w-full tc-page-stagger">
         <span className="tc-eyebrow bg-white">SIGN UP</span>
         <h1 className="mt-4 text-3xl font-black text-telecareer-ink mb-6">
           <span className="tc-marker">会員登録</span>
         </h1>
         <form onSubmit={handleSubmit} className="space-y-4 tc-card p-6 md:p-7">
           {error && (
-            <div className="text-coral-a11y text-sm bg-telecareer-coral/10 p-4 rounded-xl border-2 border-telecareer-coral flex justify-between items-start gap-3">
+            <div className="tc-error-enter text-coral-a11y text-sm bg-telecareer-coral/10 p-4 rounded-xl border-2 border-telecareer-coral flex justify-between items-start gap-3">
               <span>{error}</span>
               <button
                 type="button"
@@ -257,7 +257,7 @@ export default function SignupPage() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full btn-cta py-3 font-bold disabled:opacity-50"
+            className={`w-full btn-cta py-3 font-bold disabled:opacity-50${loading ? " tc-btn-loading" : ""}`}
           >
             {loading ? "登録中..." : "会員登録"}
           </button>

@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { DemoBanner } from "@/components/DemoBanner";
+import { NavigationProgress } from "@/components/NavigationProgress";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -16,6 +17,7 @@ export default function RootLayout({
   return (
     <html lang="ja">
       <body className="antialiased min-h-screen bg-telecareer-offwhite text-gray-800">
+        <NavigationProgress />
         <DemoBanner />
         {children}
       </body>

@@ -6,7 +6,7 @@ export default function ContactPage() {
   return (
     <div className="min-h-screen flex flex-col bg-telecareer-surface">
       <Header />
-      <main className="mx-auto max-w-md px-4 py-14 flex-1 w-full text-center">
+      <main className="mx-auto max-w-md px-4 py-14 flex-1 w-full text-center tc-page-stagger">
         <span className="tc-eyebrow bg-white">CONTACT</span>
         <h1 className="mt-4 text-3xl font-black text-telecareer-ink mb-4">
           <span className="tc-marker">お問い合わせ</span>

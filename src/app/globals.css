@@ -152,6 +152,111 @@ body {
     61%, 100% { opacity: 0.15; }
   }
 
+  @keyframes tc-page-enter {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes tc-page-item-enter {
+    from {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes tc-nav-progress {
+    0% {
+      transform: scaleX(0);
+      transform-origin: left center;
+      opacity: 1;
+    }
+    70% {
+      transform: scaleX(0.85);
+      transform-origin: left center;
+      opacity: 1;
+    }
+    100% {
+      transform: scaleX(1);
+      transform-origin: left center;
+      opacity: 0;
+    }
+  }
+
+  @keyframes tc-btn-pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.72; }
+  }
+
+  @keyframes tc-error-enter {
+    from {
+      opacity: 0;
+      transform: translateY(-4px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .tc-page-enter {
+    animation: tc-page-enter 0.2s cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+
+  .tc-page-stagger > * {
+    animation: tc-page-item-enter 0.2s cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+
+  .tc-page-stagger > *:nth-child(1) { animation-delay: 0ms; }
+  .tc-page-stagger > *:nth-child(2) { animation-delay: 35ms; }
+  .tc-page-stagger > *:nth-child(3) { animation-delay: 70ms; }
+  .tc-page-stagger > *:nth-child(4) { animation-delay: 105ms; }
+  .tc-page-stagger > *:nth-child(5) { animation-delay: 140ms; }
+
+  .tc-nav-progress-bar {
+    animation: tc-nav-progress 0.32s ease-out forwards;
+  }
+
+  .tc-btn-loading {
+    animation: tc-btn-pulse 0.75s ease-in-out infinite;
+  }
+
+  .tc-error-enter {
+    animation: tc-error-enter 0.18s ease-out both;
+  }
+
+  .tc-nav-tap {
+    transition: transform 0.1s ease, opacity 0.1s ease;
+  }
+
+  .tc-nav-tap:active {
+    transform: scale(0.96);
+    opacity: 0.85;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .tc-page-enter,
+    .tc-page-stagger > *,
+    .tc-nav-progress-bar,
+    .tc-btn-loading,
+    .tc-error-enter {
+      animation: none;
+    }
+
+    .tc-nav-tap:active {
+      transform: none;
+    }
+  }
+
   /* ダーク背景用アウトラインボタン */
   .btn-outline-light {
     display: inline-flex;

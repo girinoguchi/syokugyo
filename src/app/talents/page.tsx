@@ -29,7 +29,7 @@ export default async function TalentsPage({
     <div className="min-h-screen flex flex-col bg-telecareer-surface">
       <Header user={user ?? undefined} profile={profile ?? undefined} />
 
-      <main className="mx-auto max-w-6xl px-4 py-8 flex-1">
+      <main className="mx-auto max-w-6xl px-4 py-8 flex-1 tc-page-stagger">
         <div className="flex items-end justify-between flex-wrap gap-3 mb-6">
           <h1 className="text-2xl md:text-3xl font-black text-telecareer-ink tc-section-heading">
             人材名簿_Talent Roster_

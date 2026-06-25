@@ -17,10 +17,10 @@ export function Header({ user, profile }: HeaderProps) {
           </span>
         </Link>
         <nav className="ml-auto flex shrink-0 items-center gap-2 sm:gap-5">
-          <Link href="/jobs" className="text-sm nav-link-light font-medium hidden sm:inline">
+          <Link href="/jobs" className="text-sm nav-link-light font-medium hidden sm:inline tc-nav-tap">
             求人を探す
           </Link>
-          <Link href="/contact" className="text-sm nav-link-light font-medium hidden sm:inline">
+          <Link href="/contact" className="text-sm nav-link-light font-medium hidden sm:inline tc-nav-tap">
             お問い合わせ
           </Link>
           {profile?.role === "admin" && (
@@ -49,10 +49,10 @@ export function Header({ user, profile }: HeaderProps) {
             </>
           ) : (
             <div className="flex items-center gap-2 sm:gap-3">
-              <Link href="/login" className="text-xs sm:text-sm nav-link-light font-medium whitespace-nowrap">
+              <Link href="/login" className="text-xs sm:text-sm nav-link-light font-medium whitespace-nowrap tc-nav-tap">
                 ログイン
               </Link>
-              <Link href="/signup" className="btn-cta px-3 py-1.5 sm:px-4 sm:py-2 text-xs sm:text-sm font-bold whitespace-nowrap">
+              <Link href="/signup" className="btn-cta px-3 py-1.5 sm:px-4 sm:py-2 text-xs sm:text-sm font-bold whitespace-nowrap tc-nav-tap">
                 会員登録
               </Link>
             </div>
