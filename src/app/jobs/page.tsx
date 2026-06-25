@@ -1,7 +1,6 @@
 import { AppHeader } from "@/components/AppHeader";
 import { Footer } from "@/components/Footer";
 import { getCurrentProfile, getCurrentUser } from "@/lib/auth";
-import { getWordPressApiUrl } from "@/lib/wordpress/config";
 import { getFilteredJobs, getRecommendedJobs } from "@/lib/wordpress/jobs";
 import type { JobFilters } from "@/lib/types";
 import { JobCard } from "./JobCard";
@@ -30,7 +29,6 @@ export default async function JobsPage({
   const profile = user ? await getCurrentProfile() : null;
   const jobs = await getFilteredJobs(filters);
   const recommended = user ? await getRecommendedJobs(profile?.interested_categories ?? [], 3) : [];
-  const usingWordPress = Boolean(getWordPressApiUrl());
 
   return (
     <div className="min-h-screen flex flex-col bg-telecareer-surface">
@@ -41,12 +39,6 @@ export default async function JobsPage({
           <h1 className="mt-4 text-3xl font-black text-telecareer-ink">
             <span className="tc-marker">求人を探す</span>
           </h1>
-          <p className="mt-3 text-gray-600 text-sm">
-            エンタメ業界の求人を、雇用形態・職種・エリア・時給などで絞り込めます。
-            {usingWordPress
-              ? " WordPress の更新は最大1分以内に反映されます。"
-              : " 最新のシードデータを表示しています（更新: 2026-06-24）。"}
-          </p>
         </div>
 
         {recommended.length > 0 ? (
