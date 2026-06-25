@@ -21,6 +21,7 @@ export default function SignupPage() {
     user_type: "" as string,
     interested_categories: [] as string[],
     newsletter_opt_in: true,
+    agree_terms: false,
   });
 
   const toggleCategory = (c: string) => {
@@ -49,6 +50,10 @@ export default function SignupPage() {
     }
     if (trimmedPassword.length < 6) {
       setError("パスワードは6文字以上で入力してください。");
+      return;
+    }
+    if (!form.agree_terms) {
+      setError("利用規約・プライバシーポリシーへの同意が必要です。");
       return;
     }
 
@@ -249,15 +254,37 @@ export default function SignupPage() {
               <span className="text-sm text-gray-700">今後、案件や求人情報などのお知らせを受け取る（不要な場合はチェックを外してください）</span>
             </label>
             <p className="text-xs text-gray-500 leading-relaxed">
-              ご登録後、担当のキャリアマネージャーよりご連絡を差し上げる場合があります。<br />
-              ご登録をもって<Link href="/privacy" className="link-accent">プライバシーポリシー</Link>に同意したものとみなします。
+              ご登録後、担当のキャリアマネージャーよりご連絡を差し上げる場合があります。
             </p>
+          </div>
+
+          <div className="rounded-xl border-2 border-ink/15 bg-telecareer-surface/60 p-4">
+            <label className="flex items-start gap-2.5 cursor-pointer">
+              <input
+                type="checkbox"
+                required
+                checked={form.agree_terms}
+                onChange={(e) => setForm((p) => ({ ...p, agree_terms: e.target.checked }))}
+                className="w-4 h-4 mt-0.5 accent-telecareer-orange shrink-0"
+              />
+              <span className="text-sm text-gray-700 leading-relaxed">
+                <Link href="/terms" target="_blank" className="link-accent font-bold">
+                  利用規約
+                </Link>
+                および
+                <Link href="/privacy" target="_blank" className="link-accent font-bold">
+                  プライバシーポリシー
+                </Link>
+                に同意します。
+                <span className="text-coral-a11y"> *</span>
+              </span>
+            </label>
           </div>
 
           <button
             type="submit"
-            disabled={loading}
-            className={`w-full btn-cta py-3 font-bold disabled:opacity-50${loading ? " tc-btn-loading" : ""}`}
+            disabled={loading || !form.agree_terms}
+            className={`w-full btn-cta py-3 font-bold disabled:opacity-50 disabled:cursor-not-allowed${loading ? " tc-btn-loading" : ""}`}
           >
             {loading ? "登録中..." : "会員登録"}
           </button>

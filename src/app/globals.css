@@ -505,6 +505,32 @@ body {
     margin-bottom: 0.3rem;
   }
 
+  /* 規約・ポリシーなどの法的文書 */
+  .prose-legal ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .prose-legal ul li {
+    position: relative;
+    padding-left: 1.25rem;
+  }
+
+  .prose-legal ul li::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0.55em;
+    width: 0.5rem;
+    height: 0.5rem;
+    border-radius: 9999px;
+    background-color: var(--color-orange);
+  }
+
   /* 派手なCTAボタン：グラデ＋発光＋光沢スイープ */
   .btn-flashy {
     position: relative;

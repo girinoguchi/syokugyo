@@ -48,7 +48,10 @@ export function Footer() {
         </div>
         <div className="border-t border-white/10 pt-6 flex flex-col sm:flex-row items-center justify-between gap-3 text-gray-500">
           <span>© エンジン（株式会社フォーミュレーションI.T.S.）All Rights Reserved.</span>
-          <Link href="/privacy" className="hover:text-telecareer-yellow transition-colors">プライバシーポリシー</Link>
+          <div className="flex items-center gap-4">
+            <Link href="/terms" className="hover:text-telecareer-yellow transition-colors">利用規約</Link>
+            <Link href="/privacy" className="hover:text-telecareer-yellow transition-colors">プライバシーポリシー</Link>
+          </div>
         </div>
       </div>
     </footer>
