@@ -6,7 +6,7 @@ export function JobCard({ job }: { job: Job }) {
   const deadline = formatDeadline(job.deadline);
 
   return (
-    <Link href={`/jobs/${job.slug}`} className="tc-card tc-card-hover p-5 flex flex-col h-full">
+    <Link href={`/jobs/${job.id}`} className="tc-card tc-card-hover p-5 flex flex-col h-full">
       <div className="flex flex-wrap items-center gap-2 mb-2">
         {job.job_type ? (
           <span className={`rounded-full px-3 py-0.5 text-xs font-bold ${jobTypeClass(job.job_type)}`}>

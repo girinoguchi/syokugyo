@@ -1,12 +1,13 @@
 import { readFileSync, statSync } from "fs";
 import { join } from "path";
 import type { Job } from "@/lib/types";
+import { getProjectRoot } from "./project-root";
 
 let cachedSeedJobs: Job[] | null = null;
 let cachedSeedMtime = 0;
 
 export function loadSeedJobs(): Job[] {
-  const seedPath = join(process.cwd(), "wordpress/seed/jobs.json");
+  const seedPath = join(getProjectRoot(), "wordpress/seed/jobs.json");
 
   try {
     const { mtimeMs } = statSync(seedPath);

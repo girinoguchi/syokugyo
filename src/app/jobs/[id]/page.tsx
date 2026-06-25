@@ -8,7 +8,7 @@ import { getCurrentProfile, getCurrentUser } from "@/lib/auth";
 import {
   categoryClass,
   formatDeadline,
-  getJobBySlug,
+  getJobById,
   getJobs,
   jobTypeClass,
 } from "@/lib/wordpress/jobs";
@@ -17,12 +17,12 @@ export const revalidate = 60;
 
 export async function generateStaticParams() {
   const jobs = await getJobs();
-  return jobs.filter((job) => job.is_active).map((job) => ({ slug: job.slug }));
+  return jobs.filter((job) => job.is_active).map((job) => ({ id: job.id }));
 }
 
-export default async function JobDetailPage({ params }: { params: Promise<{ slug: string }> }) {
-  const { slug } = await params;
-  const job = await getJobBySlug(slug);
+export default async function JobDetailPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
+  const job = await getJobById(id);
   if (!job) {
     notFound();
   }

@@ -154,7 +154,7 @@ async function fetchWordPressJobs(): Promise<Job[] | null> {
 
 export async function getJobs(): Promise<Job[]> {
   const wpJobs = await fetchWordPressJobs();
-  if (wpJobs) {
+  if (wpJobs && wpJobs.length > 0) {
     return wpJobs;
   }
   return loadSeedJobs();
@@ -163,6 +163,11 @@ export async function getJobs(): Promise<Job[]> {
 export async function getFilteredJobs(filters: JobFilters): Promise<Job[]> {
   const jobs = await getJobs();
   return filterJobs(jobs, filters);
+}
+
+export async function getJobById(id: string): Promise<Job | null> {
+  const jobs = await getJobs();
+  return jobs.find((job) => job.id === id && job.is_active) ?? null;
 }
 
 export async function getJobBySlug(slug: string): Promise<Job | null> {
