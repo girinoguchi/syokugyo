@@ -2,17 +2,29 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { isDemoMode } from "@/lib/demo-auth";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { JOB_CATEGORY_OPTIONS, USER_TYPE_OPTIONS } from "@/lib/types";
 
-export default function SignupPage() {
-  const router = useRouter();
+const SIGNUP_ERROR_MESSAGES: Record<string, string> = {
+  empty: "メールアドレスとパスワードを入力してください。",
+  short: "パスワードは6文字以上で入力してください。",
+  terms: "利用規約・プライバシーポリシーへの同意が必要です。",
+  exists: "このメールアドレスは既に登録されています。ログインしてください。",
+};
+
+export default function SignupPage({
+  searchParams,
+}: {
+  searchParams?: { error?: string };
+}) {
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const initialError = searchParams?.error
+    ? SIGNUP_ERROR_MESSAGES[searchParams.error] ?? null
+    : null;
+  const [error, setError] = useState<string | null>(initialError);
   const [form, setForm] = useState({
     contact_name: "",
     birthdate: "",
@@ -35,58 +47,43 @@ export default function SignupPage() {
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError(null);
-
-    // 必須項目のバリデーション（空欄チェック）
     const trimmedEmail = form.email.trim();
     const trimmedPassword = form.password.trim();
+    // 必須項目のバリデーション（空欄チェック）
     if (!trimmedEmail) {
+      e.preventDefault();
       setError("メールアドレスを入力してください。");
       return;
     }
     if (!trimmedPassword) {
+      e.preventDefault();
       setError("パスワードを入力してください。");
       return;
     }
     if (trimmedPassword.length < 6) {
+      e.preventDefault();
       setError("パスワードは6文字以上で入力してください。");
       return;
     }
     if (!form.agree_terms) {
+      e.preventDefault();
       setError("利用規約・プライバシーポリシーへの同意が必要です。");
       return;
     }
 
     const useDemo = isDemoMode();
 
+    if (useDemo) {
+      // デモはネイティブフォーム送信（iOS Safari/BraveでもCookieが確実に保存される）
+      setError(null);
+      setLoading(true);
+      return; // preventDefault せず、ブラウザのフォーム送信に任せる
+    }
+
+    e.preventDefault();
+    setError(null);
     setLoading(true);
     try {
-      if (useDemo) {
-        const res = await fetch("/api/demo/signup", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          credentials: "include",
-          body: JSON.stringify({
-            email: trimmedEmail,
-            password: trimmedPassword,
-            contact_name: form.contact_name.trim() || null,
-            birthdate: form.birthdate || null,
-            phone: form.phone.trim() || null,
-            user_type: form.user_type || null,
-            interested_categories: form.interested_categories,
-            newsletter_opt_in: form.newsletter_opt_in,
-          }),
-        });
-        const data = await res.json().catch(() => ({}));
-        if (!res.ok) {
-          setError((data.error as string) || "登録に失敗しました。再度お試しください。");
-          return;
-        }
-        window.location.assign("/mypage");
-        return;
-      }
-
       const supabase = createClient();
       const { data: authData, error: signUpError } = await supabase.auth.signUp({
         email: trimmedEmail,
@@ -129,6 +126,8 @@ export default function SignupPage() {
     }
   };
 
+  const useDemo = isDemoMode();
+
   return (
     <div className="min-h-screen flex flex-col bg-telecareer-surface overflow-x-hidden">
       <Header />
@@ -137,7 +136,22 @@ export default function SignupPage() {
         <h1 className="mt-4 text-3xl font-black text-telecareer-ink mb-6">
           <span className="tc-marker">会員登録</span>
         </h1>
-        <form onSubmit={handleSubmit} className="space-y-4 tc-card p-6 md:p-7 min-w-0 overflow-hidden">
+        <form
+          onSubmit={handleSubmit}
+          method="POST"
+          action={useDemo ? "/api/demo/signup-form" : undefined}
+          className="space-y-4 tc-card p-6 md:p-7 min-w-0 overflow-hidden"
+        >
+          {useDemo && (
+            <>
+              <input type="hidden" name="user_type" value={form.user_type} />
+              {form.interested_categories.map((c) => (
+                <input key={c} type="hidden" name="interested_categories" value={c} />
+              ))}
+              <input type="hidden" name="newsletter_opt_in" value={form.newsletter_opt_in ? "1" : ""} />
+              <input type="hidden" name="agree_terms" value={form.agree_terms ? "1" : ""} />
+            </>
+          )}
           {error && (
             <div className="tc-error-enter text-coral-a11y text-sm bg-telecareer-coral/10 p-4 rounded-xl border-2 border-telecareer-coral flex justify-between items-start gap-3">
               <span>{error}</span>
@@ -155,6 +169,7 @@ export default function SignupPage() {
             <label className="tc-label">お名前 *</label>
             <input
               type="text"
+              name="contact_name"
               required
               value={form.contact_name}
               onChange={(e) => setForm((p) => ({ ...p, contact_name: e.target.value }))}
@@ -167,6 +182,7 @@ export default function SignupPage() {
               <label className="tc-label">生年月日</label>
               <input
                 type="date"
+                name="birthdate"
                 value={form.birthdate}
                 onChange={(e) => setForm((p) => ({ ...p, birthdate: e.target.value }))}
                 className="tc-input w-full"
@@ -176,6 +192,7 @@ export default function SignupPage() {
               <label className="tc-label">電話番号</label>
               <input
                 type="tel"
+                name="phone"
                 value={form.phone}
                 onChange={(e) => setForm((p) => ({ ...p, phone: e.target.value }))}
                 className="tc-input"
@@ -187,6 +204,7 @@ export default function SignupPage() {
             <label className="tc-label">メールアドレス *</label>
             <input
               type="email"
+              name="email"
               required
               value={form.email}
               onChange={(e) => setForm((p) => ({ ...p, email: e.target.value }))}
@@ -197,6 +215,7 @@ export default function SignupPage() {
             <label className="tc-label">パスワード *</label>
             <input
               type="password"
+              name="password"
               required
               minLength={6}
               value={form.password}
