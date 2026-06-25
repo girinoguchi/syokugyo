@@ -170,6 +170,18 @@ export async function getJobBySlug(slug: string): Promise<Job | null> {
   return jobs.find((job) => job.slug === slug && job.is_active) ?? null;
 }
 
+export async function getRecommendedJobs(categories: string[], limit = 6): Promise<Job[]> {
+  const cats = categories.filter(Boolean);
+  const jobs = await getJobs();
+  const active = jobs.filter((job) => job.is_active);
+
+  if (cats.length === 0) {
+    return active.slice(0, limit);
+  }
+
+  return active.filter((job) => cats.includes(job.category)).slice(0, limit);
+}
+
 export function formatDeadline(deadline: string | null): string | null {
   if (!deadline) return null;
   const date = new Date(deadline);

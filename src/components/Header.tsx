@@ -2,10 +2,16 @@ import Link from "next/link";
 
 type HeaderProps = {
   user?: { email?: string | null } | null;
-  profile?: { company_name?: string | null; role?: string } | null;
+  profile?: {
+    company_name?: string | null;
+    contact_name?: string | null;
+    role?: string;
+  } | null;
 };
 
 export function Header({ user, profile }: HeaderProps) {
+  const displayName = profile?.contact_name?.trim() || profile?.company_name?.trim();
+
   return (
     <header className="sticky top-0 z-40 bg-telecareer-offwhite/90 backdrop-blur border-b-2 border-ink">
       <div className="mx-auto max-w-6xl px-4 py-3 flex items-center gap-3">
@@ -16,31 +22,30 @@ export function Header({ user, profile }: HeaderProps) {
             <span className="text-[10px] font-bold text-gray-500 mt-0.5 hidden sm:block">エンタメ人材キャリアマッチング</span>
           </span>
         </Link>
-        <nav className="ml-auto flex shrink-0 items-center gap-2 sm:gap-5">
-          <Link href="/jobs" className="text-sm nav-link-light font-medium hidden sm:inline tc-nav-tap">
-            求人を探す
-          </Link>
-          <Link href="/contact" className="text-sm nav-link-light font-medium hidden sm:inline tc-nav-tap">
-            お問い合わせ
-          </Link>
-          {profile?.role === "admin" && (
-            <>
-              <Link href="/admin" className="text-sm nav-link-light hidden sm:inline">
-                ダッシュボード
-              </Link>
-              <Link href="/admin/jobs" className="text-sm nav-link-light hidden sm:inline">
-                案件管理
-              </Link>
-              <Link href="/admin/applications" className="text-sm nav-link-light hidden sm:inline">
-                応募一覧
-              </Link>
-            </>
-          )}
+        <nav className="ml-auto flex shrink-0 items-center gap-2 sm:gap-5 text-sm font-bold">
           {user ? (
             <>
-              <span className="text-sm font-semibold text-gray-600 hidden sm:inline">
-                {profile?.company_name ?? "会員"}
-              </span>
+              <Link href="/jobs" className="nav-link-light font-medium hidden sm:inline tc-nav-tap">
+                求人を探す
+              </Link>
+              <Link href="/mypage" className="nav-link-light font-medium tc-nav-tap whitespace-nowrap">
+                マイページ
+              </Link>
+              {profile?.role === "admin" && (
+                <>
+                  <Link href="/admin" className="nav-link-light hidden sm:inline">
+                    ダッシュボード
+                  </Link>
+                  <Link href="/admin/requests" className="nav-link-light hidden sm:inline">
+                    依頼一覧
+                  </Link>
+                </>
+              )}
+              {displayName ? (
+                <span className="text-sm font-semibold text-gray-600 hidden md:inline max-w-[8rem] truncate">
+                  {displayName}
+                </span>
+              ) : null}
               <form action="/auth/signout" method="post">
                 <button type="submit" className="text-xs sm:text-sm nav-link-light whitespace-nowrap">
                   ログアウト
@@ -48,14 +53,17 @@ export function Header({ user, profile }: HeaderProps) {
               </form>
             </>
           ) : (
-            <div className="flex items-center gap-2 sm:gap-3">
+            <>
+              <Link href="/jobs" className="nav-link-light font-medium hidden sm:inline tc-nav-tap">
+                求人を探す
+              </Link>
               <Link href="/login" className="text-xs sm:text-sm nav-link-light font-medium whitespace-nowrap tc-nav-tap">
                 ログイン
               </Link>
               <Link href="/signup" className="btn-cta px-3 py-1.5 sm:px-4 sm:py-2 text-xs sm:text-sm font-bold whitespace-nowrap tc-nav-tap">
                 会員登録
               </Link>
-            </div>
+            </>
           )}
         </nav>
       </div>

@@ -1,7 +1,8 @@
-import { Header } from "@/components/Header";
+import { AppHeader } from "@/components/AppHeader";
 import { Footer } from "@/components/Footer";
+import { getCurrentProfile, getCurrentUser } from "@/lib/auth";
 import { getWordPressApiUrl } from "@/lib/wordpress/config";
-import { getFilteredJobs } from "@/lib/wordpress/jobs";
+import { getFilteredJobs, getRecommendedJobs } from "@/lib/wordpress/jobs";
 import type { JobFilters } from "@/lib/types";
 import { JobCard } from "./JobCard";
 import { JobsSearchForm } from "./JobsSearchForm";
@@ -25,12 +26,15 @@ export default async function JobsPage({
     sort: typeof params.sort === "string" ? params.sort : "new",
   };
 
+  const user = await getCurrentUser();
+  const profile = user ? await getCurrentProfile() : null;
   const jobs = await getFilteredJobs(filters);
+  const recommended = user ? await getRecommendedJobs(profile?.interested_categories ?? [], 3) : [];
   const usingWordPress = Boolean(getWordPressApiUrl());
 
   return (
     <div className="min-h-screen flex flex-col bg-telecareer-surface">
-      <Header />
+      <AppHeader />
       <main className="mx-auto max-w-6xl px-4 py-10 flex-1 w-full tc-page-stagger">
         <div className="mb-8">
           <span className="tc-eyebrow bg-white">JOBS</span>
@@ -44,6 +48,17 @@ export default async function JobsPage({
               : " 最新のシードデータを表示しています（更新: 2026-06-24）。"}
           </p>
         </div>
+
+        {recommended.length > 0 ? (
+          <section className="mb-10">
+            <h2 className="font-black text-xl text-telecareer-ink mb-4">あなたへのおすすめ求人</h2>
+            <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+              {recommended.map((job) => (
+                <JobCard key={job.id} job={job} />
+              ))}
+            </div>
+          </section>
+        ) : null}
 
         <JobsSearchForm filters={filters} />
 

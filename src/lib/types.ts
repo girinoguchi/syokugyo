@@ -9,6 +9,11 @@ export interface Profile {
   role: ProfileRole;
   program_genres: string[];
   needed_roles: string[];
+  user_type?: string | null;
+  interested_categories?: string[];
+  birthdate?: string | null;
+  phone?: string | null;
+  newsletter_opt_in?: boolean;
 }
 
 export interface Talent {
@@ -68,6 +73,7 @@ export const USER_TYPE_OPTIONS = [
   "未経験",
   "その他",
 ] as const;
+export const GENDER_OPTIONS = ["男性", "女性", "その他", "回答しない"] as const;
 export const REQUEST_STATUSES = ["未対応", "対応中", "完了"] as const;
 
 export interface Job {

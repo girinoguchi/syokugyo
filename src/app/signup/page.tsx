@@ -81,7 +81,7 @@ export default function SignupPage() {
           setError((data.error as string) || "登録に失敗しました。再度お試しください。");
           return;
         }
-        router.push("/talents");
+        router.push("/mypage");
         router.refresh();
         return;
       }
@@ -90,7 +90,7 @@ export default function SignupPage() {
       const { data: authData, error: signUpError } = await supabase.auth.signUp({
         email: trimmedEmail,
         password: trimmedPassword,
-        options: { emailRedirectTo: `${location.origin}/talents` },
+        options: { emailRedirectTo: `${location.origin}/mypage` },
       });
       if (signUpError) {
         setError(signUpError.message + " 内容を修正して再度送信してください。");
@@ -118,7 +118,7 @@ export default function SignupPage() {
         setError(profileError.message + " 内容を修正して再度送信してください。");
         return;
       }
-      router.push("/talents");
+      router.push("/mypage");
       router.refresh();
     } catch (err) {
       setError(

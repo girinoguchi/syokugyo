@@ -1,8 +1,10 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { Header } from "@/components/Header";
+import { AppHeader } from "@/components/AppHeader";
 import { Footer } from "@/components/Footer";
-import { getCurrentUser } from "@/lib/auth";
+import { JobApplyForm } from "@/components/JobApplyForm";
+import { ageFromBirthdate } from "@/lib/demo-auth";
+import { getCurrentProfile, getCurrentUser } from "@/lib/auth";
 import {
   categoryClass,
   formatDeadline,
@@ -26,11 +28,12 @@ export default async function JobDetailPage({ params }: { params: Promise<{ slug
   }
 
   const user = await getCurrentUser();
+  const profile = user ? await getCurrentProfile() : null;
   const deadline = formatDeadline(job.deadline);
 
   return (
     <div className="min-h-screen flex flex-col bg-telecareer-surface">
-      <Header user={user ?? undefined} />
+      <AppHeader />
       <main className="mx-auto max-w-3xl px-4 py-8 flex-1 tc-page-stagger">
         <Link href="/jobs" className="text-sm link-accent mb-5 inline-block">
           ← 案件一覧へ
@@ -100,9 +103,15 @@ export default async function JobDetailPage({ params }: { params: Promise<{ slug
 
           <div className="mt-8 border-t-2 border-dashed border-ink/15 pt-6">
             {user ? (
-              <p className="text-sm text-gray-700">
-                応募機能は準備中です。担当者へお問い合わせください。
-              </p>
+              <JobApplyForm
+                job={job}
+                profile={{
+                  contact_name: profile?.contact_name,
+                  email: profile?.email ?? user.email,
+                  phone: profile?.phone,
+                  age: ageFromBirthdate(profile?.birthdate),
+                }}
+              />
             ) : (
               <p className="text-sm text-gray-700">
                 応募するには

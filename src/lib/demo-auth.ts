@@ -8,6 +8,10 @@ export type DemoSession = {
   company_name: string | null;
   contact_name: string | null;
   role: "member" | "admin";
+  user_type?: string | null;
+  interested_categories?: string[];
+  phone?: string | null;
+  birthdate?: string | null;
 };
 
 function hasValidSupabaseUrl(url: string | undefined): boolean {
@@ -48,6 +52,10 @@ export function createDemoSessionCookie(profile: Profile): string {
     company_name: profile.company_name ?? null,
     contact_name: profile.contact_name ?? null,
     role: profile.role,
+    user_type: profile.user_type ?? null,
+    interested_categories: profile.interested_categories ?? [],
+    phone: profile.phone ?? null,
+    birthdate: profile.birthdate ?? null,
   };
   const encoded = Buffer.from(JSON.stringify(payload), "utf8").toString("base64url");
   return `${DEMO_COOKIE}=${encoded}; Path=/; HttpOnly; SameSite=Lax; Max-Age=2592000`;
@@ -67,5 +75,17 @@ export function demoSessionToProfile(session: DemoSession): Profile {
     role: session.role,
     program_genres: [],
     needed_roles: [],
+    user_type: session.user_type ?? null,
+    interested_categories: session.interested_categories ?? [],
+    phone: session.phone ?? null,
+    birthdate: session.birthdate ?? null,
   };
+}
+
+export function ageFromBirthdate(birthdate: string | null | undefined): string {
+  if (!birthdate) return "";
+  const born = new Date(birthdate);
+  if (Number.isNaN(born.getTime())) return "";
+  const age = Math.floor((Date.now() - born.getTime()) / (365.25 * 24 * 60 * 60 * 1000));
+  return age >= 0 ? String(age) : "";
 }

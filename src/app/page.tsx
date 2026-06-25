@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Header } from "@/components/Header";
+import { AppHeader } from "@/components/AppHeader";
 import { Footer } from "@/components/Footer";
 import { MediaLogoMarquee } from "@/components/MediaLogoMarquee";
 import { CategoryCard } from "@/components/CategoryCard";
@@ -13,7 +13,7 @@ import {
 export default function HomePage() {
   return (
     <div className="min-h-screen flex flex-col bg-telecareer-surface">
-      <Header />
+      <AppHeader />
 
       <main className="flex-1">
         {/* ===== Hero（明るい配色／背景に流れるメディア実績ロゴ） ===== */}

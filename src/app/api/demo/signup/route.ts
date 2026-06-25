@@ -4,7 +4,19 @@ import { setDemoProfile } from "@/lib/demo-store";
 
 export async function POST(req: Request) {
   const body = await req.json();
-  const { email, password, company_name, contact_name, program_genres, needed_roles } = body;
+  const {
+    email,
+    password,
+    company_name,
+    contact_name,
+    program_genres,
+    needed_roles,
+    birthdate,
+    phone,
+    user_type,
+    interested_categories,
+    newsletter_opt_in,
+  } = body;
   if (!email || !password) {
     return NextResponse.json({ error: "メールアドレスとパスワードは必須です" }, { status: 400 });
   }
@@ -17,6 +29,10 @@ export async function POST(req: Request) {
     role: "member",
     program_genres: program_genres || [],
     needed_roles: needed_roles || [],
+    user_type: user_type || null,
+    interested_categories: interested_categories || [],
+    phone: phone || null,
+    birthdate: birthdate || null,
   });
   const cookieStore = await cookies();
   const profile = {
@@ -25,6 +41,11 @@ export async function POST(req: Request) {
     company_name: company_name || null,
     contact_name: contact_name || null,
     role: "member" as const,
+    user_type: user_type || null,
+    interested_categories: interested_categories || [],
+    phone: phone || null,
+    birthdate: birthdate || null,
+    newsletter_opt_in: newsletter_opt_in ?? true,
   };
   cookieStore.set("demo_session", Buffer.from(JSON.stringify(profile), "utf8").toString("base64url"), {
     path: "/",

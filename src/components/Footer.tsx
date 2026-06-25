@@ -30,6 +30,7 @@ export function Footer() {
             <ul className="space-y-2">
               <li><Link href="/" className="hover:text-telecareer-yellow transition-colors">トップ</Link></li>
               <li><Link href="/jobs" className="hover:text-telecareer-yellow transition-colors">求人を探す</Link></li>
+              <li><Link href="/mypage" className="hover:text-telecareer-yellow transition-colors">マイページ</Link></li>
               <li><Link href="/contact" className="hover:text-telecareer-yellow transition-colors">お問い合わせ</Link></li>
               <li><Link href="/login" className="hover:text-telecareer-yellow transition-colors">ログイン</Link></li>
               <li><Link href="/signup" className="hover:text-telecareer-yellow transition-colors">会員登録</Link></li>

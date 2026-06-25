@@ -19,6 +19,10 @@ export async function POST(req: Request) {
     company_name: stored.company_name || null,
     contact_name: stored.contact_name || null,
     role: stored.role || "member",
+    user_type: stored.user_type ?? null,
+    interested_categories: stored.interested_categories ?? [],
+    phone: stored.phone ?? null,
+    birthdate: stored.birthdate ?? null,
   };
   const cookieStore = await cookies();
   cookieStore.set("demo_session", Buffer.from(JSON.stringify(profile), "utf8").toString("base64url"), {
