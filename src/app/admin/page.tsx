@@ -1,20 +1,79 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
+import { isDemoMode } from "@/lib/demo-auth";
+import { AdminDemoDashboard } from "@/components/admin/AdminDemoDashboard";
 import type { Job } from "@/lib/types";
 
 function categoryClass(category: string) {
   const map: Record<string, string> = {
-    "エキストラ": "tag-yellow",
-    "音響スタッフ": "tag-green",
-    "照明スタッフ": "tag-orange",
+    エキストラ: "tag-yellow",
+    音響スタッフ: "tag-green",
+    照明スタッフ: "tag-orange",
     "撮影・カメラ": "tag-coral",
     "制作・AD": "tag-green",
-    "イベント運営": "tag-yellow",
+    イベント運営: "tag-yellow",
   };
   return map[category] ?? "tag-plain";
 }
 
+function AdminJobsTable({
+  list,
+}: {
+  list: Pick<Job, "id" | "title" | "category" | "location" | "is_active" | "created_at">[];
+}) {
+  return (
+    <div className="tc-card-soft overflow-hidden">
+      <div className="overflow-x-auto">
+        <table className="w-full text-left min-w-[600px]">
+          <thead className="bg-telecareer-yellow/15 border-b-2 border-ink/10">
+            <tr>
+              <th className="px-4 py-3 text-sm font-bold text-ink">求人タイトル</th>
+              <th className="px-4 py-3 text-sm font-bold text-ink">カテゴリ</th>
+              <th className="px-4 py-3 text-sm font-bold text-ink">勤務地</th>
+              <th className="px-4 py-3 text-sm font-bold text-ink">状態</th>
+              <th className="px-4 py-3 text-sm font-bold text-ink">操作</th>
+            </tr>
+          </thead>
+          <tbody>
+            {list.length === 0 ? (
+              <tr>
+                <td colSpan={5} className="px-4 py-8 text-gray-500 text-center">
+                  案件がまだ登録されていません。
+                </td>
+              </tr>
+            ) : (
+              list.map((j) => (
+                <tr key={j.id} className="border-b border-ink/5">
+                  <td className="px-4 py-3 font-bold text-ink max-w-[280px] truncate">{j.title}</td>
+                  <td className="px-4 py-3">
+                    <span className={`tag-pill ${categoryClass(j.category)}`}>{j.category}</span>
+                  </td>
+                  <td className="px-4 py-3 text-sm text-gray-600">{j.location ?? "—"}</td>
+                  <td className="px-4 py-3">
+                    <span className={`tag-pill ${j.is_active ? "tag-green" : "tag-plain"}`}>
+                      {j.is_active ? "公開" : "非公開"}
+                    </span>
+                  </td>
+                  <td className="px-4 py-3">
+                    <Link href={`/jobs/${j.id}`} className="text-sm link-accent">
+                      プレビュー
+                    </Link>
+                  </td>
+                </tr>
+              ))
+            )}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
+
 export default async function AdminDashboardPage() {
+  if (isDemoMode()) {
+    return <AdminDemoDashboard />;
+  }
+
   const supabase = await createClient();
   const { data: jobs } = await supabase
     .from("jobs")
@@ -41,47 +100,7 @@ export default async function AdminDashboardPage() {
       </div>
 
       <h2 className="text-lg font-bold text-telecareer-ink mb-3">掲載中・登録済みの案件</h2>
-      <div className="tc-card-soft overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full text-left min-w-[600px]">
-            <thead className="bg-telecareer-yellow/15 border-b-2 border-ink/10">
-              <tr>
-                <th className="px-4 py-3 text-sm font-bold text-ink">求人タイトル</th>
-                <th className="px-4 py-3 text-sm font-bold text-ink">カテゴリ</th>
-                <th className="px-4 py-3 text-sm font-bold text-ink">勤務地</th>
-                <th className="px-4 py-3 text-sm font-bold text-ink">状態</th>
-                <th className="px-4 py-3 text-sm font-bold text-ink">操作</th>
-              </tr>
-            </thead>
-            <tbody>
-              {list.length === 0 ? (
-                <tr><td colSpan={5} className="px-4 py-8 text-gray-500 text-center">案件がまだ登録されていません。「+ 案件を新規登録」から追加してください。</td></tr>
-              ) : (
-                list.map((j) => (
-                  <tr key={j.id} className="border-b border-ink/5">
-                    <td className="px-4 py-3 font-bold text-ink max-w-[280px] truncate">{j.title}</td>
-                    <td className="px-4 py-3">
-                      <span className={`tag-pill ${categoryClass(j.category)}`}>{j.category}</span>
-                    </td>
-                    <td className="px-4 py-3 text-sm text-gray-600">{j.location ?? "—"}</td>
-                    <td className="px-4 py-3">
-                      <span className={`tag-pill ${j.is_active ? "tag-green" : "tag-plain"}`}>{j.is_active ? "公開" : "非公開"}</span>
-                    </td>
-                    <td className="px-4 py-3 flex gap-3 items-center">
-                      <Link href={`/admin/jobs/${j.id}/edit`} className="text-sm link-accent">編集</Link>
-                      <form action={`/admin/jobs/${j.id}/delete`} method="post" className="inline">
-                        <button type="submit" className="text-sm font-semibold text-coral-a11y hover:underline" onClick={(e) => !confirm("削除してよろしいですか？") && e.preventDefault()}>
-                          削除
-                        </button>
-                      </form>
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
-      </div>
+      <AdminJobsTable list={list} />
     </div>
   );
 }

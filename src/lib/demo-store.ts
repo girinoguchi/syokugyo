@@ -1,4 +1,4 @@
-import { findDemoUser, loadDemoUsers, upsertDemoUser } from "./demo-store-persist";
+import { deleteDemoUser, findDemoUser, loadDemoUsers, upsertDemoUser } from "./demo-store-persist";
 
 export type DemoProfile = {
   email: string;
@@ -44,9 +44,9 @@ export const DEMO_ACCOUNTS = [
     password: "demo123",
   },
   {
-    label: "管理者（管理画面は本番のみ）",
-    email: "admin@demo.local",
-    password: "demo123",
+    label: "管理者",
+    email: "admin",
+    password: "admin",
   },
 ] as const;
 
@@ -63,6 +63,10 @@ export function setDemoProfile(email: string, data: DemoProfile): void {
 
 export function listDemoProfiles(): DemoProfile[] {
   return loadDemoUsers();
+}
+
+export function removeDemoProfile(email: string): boolean {
+  return deleteDemoUser(email);
 }
 
 export function addDemoApplication(data: Omit<DemoApplication, "id" | "created_at">): DemoApplication {

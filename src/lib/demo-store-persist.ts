@@ -40,6 +40,10 @@ function mergeUsers(seed: DemoProfile[], runtime: DemoProfile[]): DemoProfile[] 
     map.set(user.email.toLowerCase(), user);
   }
   for (const user of runtime) {
+    if ((user as DemoProfile & { __deleted?: boolean }).__deleted) {
+      map.delete(user.email.toLowerCase());
+      continue;
+    }
     map.set(user.email.toLowerCase(), user);
   }
   return Array.from(map.values());
@@ -82,6 +86,36 @@ export function saveDemoUsers(users: DemoProfile[]): void {
 export function findDemoUser(email: string): DemoProfile | undefined {
   const normalized = email.trim().toLowerCase();
   return loadDemoUsers().find((u) => u.email.toLowerCase() === normalized);
+}
+
+export function deleteDemoUser(email: string): boolean {
+  const normalized = email.trim().toLowerCase();
+  const seedPath = getSeedPath();
+  const dataPath = getDataPath();
+  const seed = readUsersFile(seedPath);
+  const runtime = readUsersFile(dataPath);
+  const existed =
+    seed.some((u) => u.email.toLowerCase() === normalized) ||
+    runtime.some((u) => u.email.toLowerCase() === normalized);
+  if (!existed) return false;
+  // seed 由来のユーザーも runtime に「削除済み」を表現できないため、
+  // runtime から除外したうえで seed にも存在する場合は tombstone を残す。
+  const nextRuntime = runtime.filter((u) => u.email.toLowerCase() !== normalized);
+  if (seed.some((u) => u.email.toLowerCase() === normalized)) {
+    nextRuntime.push({
+      email: normalized,
+      password: "",
+      company_name: "",
+      contact_name: "",
+      role: "member",
+      program_genres: [],
+      needed_roles: [],
+      __deleted: true,
+    } as DemoProfile & { __deleted: true });
+  }
+  saveDemoUsers(nextRuntime);
+  cachedUsers = null;
+  return true;
 }
 
 export function upsertDemoUser(profile: DemoProfile): void {

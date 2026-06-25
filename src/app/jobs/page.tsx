@@ -6,7 +6,7 @@ import type { JobFilters } from "@/lib/types";
 import { JobCard } from "./JobCard";
 import { JobsSearchForm } from "./JobsSearchForm";
 
-export const revalidate = 60;
+export const dynamic = "force-dynamic";
 
 export default async function JobsPage({
   searchParams,

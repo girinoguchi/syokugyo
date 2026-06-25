@@ -32,10 +32,13 @@ export function Header({ user, profile, onLogout }: HeaderProps) {
               {profile?.role === "admin" && (
                 <>
                   <Link href="/admin" className="nav-link-light hidden sm:inline">
-                    ダッシュボード
+                    管理
                   </Link>
-                  <Link href="/admin/requests" className="nav-link-light hidden sm:inline">
-                    依頼一覧
+                  <Link href="/admin/jobs" className="nav-link-light hidden md:inline">
+                    案件管理
+                  </Link>
+                  <Link href="/admin/accounts" className="nav-link-light hidden md:inline">
+                    アカウント管理
                   </Link>
                 </>
               )}
