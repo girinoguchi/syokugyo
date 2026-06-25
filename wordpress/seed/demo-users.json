@@ -1,0 +1,30 @@
+{
+  "users": [
+    {
+      "email": "member@demo.local",
+      "password": "demo123",
+      "company_name": "デモ株式会社",
+      "contact_name": "デモ 太郎",
+      "role": "member",
+      "program_genres": ["バラエティ"],
+      "needed_roles": ["AD"],
+      "user_type": "学生",
+      "interested_categories": ["制作・AD", "エキストラ"],
+      "phone": "090-1234-5678",
+      "birthdate": "2000-01-15"
+    },
+    {
+      "email": "admin@demo.local",
+      "password": "demo123",
+      "company_name": "デモ運営",
+      "contact_name": "デモ 管理者",
+      "role": "admin",
+      "program_genres": ["バラエティ"],
+      "needed_roles": ["AD"],
+      "user_type": "学生",
+      "interested_categories": ["制作・AD", "エキストラ"],
+      "phone": "090-1234-5678",
+      "birthdate": "2000-01-15"
+    }
+  ]
+}

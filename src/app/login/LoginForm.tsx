@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import { isDemoMode } from "@/lib/demo-auth";
 
 export function LoginForm() {
   const router = useRouter();
@@ -29,7 +30,7 @@ export function LoginForm() {
       return;
     }
 
-    const useDemo = !process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+    const useDemo = isDemoMode();
 
     setLoading(true);
     try {
@@ -37,6 +38,7 @@ export function LoginForm() {
         const res = await fetch("/api/demo/login", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
+          credentials: "include",
           body: JSON.stringify({ email: trimmedEmail, password: trimmedPassword }),
         });
         const data = await res.json().catch(() => ({}));

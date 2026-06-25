@@ -1,12 +1,23 @@
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
-import { setDemoProfile } from "@/lib/demo-store";
+import { getDemoProfile, setDemoProfile } from "@/lib/demo-store";
+import { createDemoSessionPayload, demoSessionCookieOptions, encodeDemoSessionCookie } from "@/lib/demo-session";
 
 export async function POST(req: Request) {
   const body = await req.json();
+  const email = String(body.email ?? "").trim().toLowerCase();
+  const password = String(body.password ?? "");
+
+  if (!email || !password) {
+    return NextResponse.json({ error: "メールアドレスとパスワードは必須です" }, { status: 400 });
+  }
+
+  const existing = getDemoProfile(email);
+  if (existing) {
+    return NextResponse.json({ error: "このメールアドレスは既に登録されています。ログインしてください。" }, { status: 409 });
+  }
+
   const {
-    email,
-    password,
     company_name,
     contact_name,
     program_genres,
@@ -17,41 +28,26 @@ export async function POST(req: Request) {
     interested_categories,
     newsletter_opt_in,
   } = body;
-  if (!email || !password) {
-    return NextResponse.json({ error: "メールアドレスとパスワードは必須です" }, { status: 400 });
-  }
-  const id = `demo-${Date.now()}-${Math.random().toString(36).slice(2)}`;
-  setDemoProfile(email, {
+
+  const profile = {
     email,
     password,
     company_name: company_name || "",
     contact_name: contact_name || "",
-    role: "member",
+    role: "member" as const,
     program_genres: program_genres || [],
     needed_roles: needed_roles || [],
     user_type: user_type || null,
     interested_categories: interested_categories || [],
     phone: phone || null,
     birthdate: birthdate || null,
-  });
-  const cookieStore = await cookies();
-  const profile = {
-    id,
-    email,
-    company_name: company_name || null,
-    contact_name: contact_name || null,
-    role: "member" as const,
-    user_type: user_type || null,
-    interested_categories: interested_categories || [],
-    phone: phone || null,
-    birthdate: birthdate || null,
-    newsletter_opt_in: newsletter_opt_in ?? true,
   };
-  cookieStore.set("demo_session", Buffer.from(JSON.stringify(profile), "utf8").toString("base64url"), {
-    path: "/",
-    httpOnly: true,
-    sameSite: "lax",
-    maxAge: 60 * 60 * 24 * 30,
-  });
+
+  setDemoProfile(email, profile);
+
+  const session = createDemoSessionPayload(profile);
+  const cookieStore = await cookies();
+  cookieStore.set("demo_session", encodeDemoSessionCookie(session), demoSessionCookieOptions(req));
+
   return NextResponse.json({ ok: true });
 }

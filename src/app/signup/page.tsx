@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import { isDemoMode } from "@/lib/demo-auth";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { JOB_CATEGORY_OPTIONS, USER_TYPE_OPTIONS } from "@/lib/types";
@@ -57,7 +58,7 @@ export default function SignupPage() {
       return;
     }
 
-    const useDemo = !process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+    const useDemo = isDemoMode();
 
     setLoading(true);
     try {
@@ -65,6 +66,7 @@ export default function SignupPage() {
         const res = await fetch("/api/demo/signup", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
+          credentials: "include",
           body: JSON.stringify({
             email: trimmedEmail,
             password: trimmedPassword,
