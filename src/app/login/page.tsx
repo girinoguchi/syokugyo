@@ -1,9 +1,20 @@
 import { Suspense } from "react";
+import { redirect } from "next/navigation";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { LoginForm } from "./LoginForm";
+import { getCurrentUser } from "@/lib/auth";
 
-export default function LoginPage() {
+type LoginPageProps = {
+  searchParams?: { redirect?: string };
+};
+
+export default async function LoginPage({ searchParams }: LoginPageProps) {
+  const user = await getCurrentUser();
+  if (user) {
+    redirect(searchParams?.redirect || "/mypage");
+  }
+
   return (
     <div className="min-h-screen flex flex-col bg-telecareer-surface">
       <Header />

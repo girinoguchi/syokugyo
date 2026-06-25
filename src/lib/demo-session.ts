@@ -25,7 +25,14 @@ export function createDemoSessionPayload(stored: {
 
 export function demoSessionCookieOptions(req: Request) {
   const proto = req.headers.get("x-forwarded-proto") ?? "";
-  const secure = proto.split(",")[0].trim() === "https";
+  const forwardedSecure = proto.split(",")[0].trim() === "https";
+  let requestSecure = false;
+  try {
+    requestSecure = new URL(req.url).protocol === "https:";
+  } catch {
+    requestSecure = false;
+  }
+  const secure = forwardedSecure || requestSecure;
   return {
     path: "/",
     httpOnly: true,

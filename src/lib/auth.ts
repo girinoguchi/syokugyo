@@ -1,13 +1,12 @@
 import { createClient } from "@/lib/supabase/server";
 import type { Profile } from "@/lib/types";
-import { isDemoMode, parseDemoCookie, demoSessionToProfile } from "@/lib/demo-auth";
-import { headers } from "next/headers";
+import { isDemoMode, parseDemoSessionValue, demoSessionToProfile } from "@/lib/demo-auth";
+import { cookies } from "next/headers";
 
 export async function getCurrentUser() {
   if (isDemoMode()) {
-    const headersList = await headers();
-    const cookie = headersList.get("cookie");
-    const session = parseDemoCookie(cookie);
+    const cookieStore = await cookies();
+    const session = parseDemoSessionValue(cookieStore.get("demo_session")?.value);
     if (!session) return null;
     return { id: session.id, email: session.email } as { id: string; email: string };
   }
@@ -18,9 +17,8 @@ export async function getCurrentUser() {
 
 export async function getCurrentProfile(): Promise<Profile | null> {
   if (isDemoMode()) {
-    const headersList = await headers();
-    const cookie = headersList.get("cookie");
-    const session = parseDemoCookie(cookie);
+    const cookieStore = await cookies();
+    const session = parseDemoSessionValue(cookieStore.get("demo_session")?.value);
     if (!session) return null;
     return demoSessionToProfile(session);
   }

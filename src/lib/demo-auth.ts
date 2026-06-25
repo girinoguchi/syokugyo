@@ -33,16 +33,23 @@ export function isDemoMode(): boolean {
   return false;
 }
 
+export function parseDemoSessionValue(value: string | null | undefined): DemoSession | null {
+  if (!value) return null;
+  try {
+    const decoded = Buffer.from(value, "base64url").toString("utf8");
+    const session = JSON.parse(decoded) as DemoSession;
+    if (!session?.email) return null;
+    return session;
+  } catch {
+    return null;
+  }
+}
+
 export function parseDemoCookie(cookieHeader: string | null): DemoSession | null {
   if (!cookieHeader) return null;
   const match = cookieHeader.match(new RegExp(`${DEMO_COOKIE}=([^;]+)`));
   if (!match) return null;
-  try {
-    const decoded = Buffer.from(match[1], "base64url").toString("utf8");
-    return JSON.parse(decoded) as DemoSession;
-  } catch {
-    return null;
-  }
+  return parseDemoSessionValue(match[1]);
 }
 
 export function createDemoSessionCookie(profile: Profile): string {

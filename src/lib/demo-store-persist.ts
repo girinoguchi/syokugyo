@@ -1,13 +1,23 @@
 import { existsSync, mkdirSync, readFileSync, statSync, writeFileSync } from "fs";
 import { join } from "path";
+import { getProjectRoot } from "./project-root";
 import type { DemoProfile } from "./demo-store";
 
 export type DemoUsersFile = {
   users: DemoProfile[];
 };
 
-const SEED_PATH = join(process.cwd(), "wordpress/seed/demo-users.json");
-const DATA_PATH = join(process.cwd(), ".data/demo-users.json");
+function getSeedPath(): string {
+  return join(getProjectRoot(), "wordpress/seed/demo-users.json");
+}
+
+function getDataDir(): string {
+  return join(getProjectRoot(), ".data");
+}
+
+function getDataPath(): string {
+  return join(getDataDir(), "demo-users.json");
+}
 
 let cachedUsers: DemoProfile[] | null = null;
 let cachedSeedMtime = 0;
@@ -37,12 +47,14 @@ function mergeUsers(seed: DemoProfile[], runtime: DemoProfile[]): DemoProfile[] 
 
 export function loadDemoUsers(): DemoProfile[] {
   try {
-    const seedMtime = existsSync(SEED_PATH) ? statSync(SEED_PATH).mtimeMs : 0;
-    const dataMtime = existsSync(DATA_PATH) ? statSync(DATA_PATH).mtimeMs : 0;
+    const seedPath = getSeedPath();
+    const dataPath = getDataPath();
+    const seedMtime = existsSync(seedPath) ? statSync(seedPath).mtimeMs : 0;
+    const dataMtime = existsSync(dataPath) ? statSync(dataPath).mtimeMs : 0;
 
     if (!cachedUsers || seedMtime !== cachedSeedMtime || dataMtime !== cachedDataMtime) {
-      const seed = readUsersFile(SEED_PATH);
-      const runtime = readUsersFile(DATA_PATH);
+      const seed = readUsersFile(seedPath);
+      const runtime = readUsersFile(dataPath);
       cachedUsers = mergeUsers(seed, runtime);
       cachedSeedMtime = seedMtime;
       cachedDataMtime = dataMtime;
@@ -54,12 +66,14 @@ export function loadDemoUsers(): DemoProfile[] {
 }
 
 export function saveDemoUsers(users: DemoProfile[]): void {
-  mkdirSync(join(process.cwd(), ".data"), { recursive: true });
+  const dataDir = getDataDir();
+  const dataPath = getDataPath();
+  mkdirSync(dataDir, { recursive: true });
   const payload: DemoUsersFile = { users };
-  writeFileSync(DATA_PATH, JSON.stringify(payload, null, 2), "utf8");
+  writeFileSync(dataPath, JSON.stringify(payload, null, 2), "utf8");
   cachedUsers = users;
   try {
-    cachedDataMtime = statSync(DATA_PATH).mtimeMs;
+    cachedDataMtime = statSync(dataPath).mtimeMs;
   } catch {
     cachedDataMtime = Date.now();
   }
@@ -72,8 +86,10 @@ export function findDemoUser(email: string): DemoProfile | undefined {
 
 export function upsertDemoUser(profile: DemoProfile): void {
   const normalized = profile.email.trim().toLowerCase();
-  const seed = readUsersFile(SEED_PATH);
-  const runtime = readUsersFile(DATA_PATH).filter((u) => u.email.toLowerCase() !== normalized);
+  const seedPath = getSeedPath();
+  const dataPath = getDataPath();
+  const seed = readUsersFile(seedPath);
+  const runtime = readUsersFile(dataPath).filter((u) => u.email.toLowerCase() !== normalized);
   runtime.push({ ...profile, email: normalized });
   const merged = mergeUsers(seed, runtime);
   saveDemoUsers(runtime);
