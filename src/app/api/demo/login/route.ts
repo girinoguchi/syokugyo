@@ -60,7 +60,9 @@ export async function POST(req: Request) {
   const session = createDemoSessionPayload(stored);
   const options = demoSessionCookieOptions(req);
   debugLog("login_ok", req, { email, cookieSecure: options.secure, cookieSameSite: options.sameSite });
-  const response = NextResponse.json({ ok: true });
+  // session をボディでも返す: Cookieをブロックするブラウザ(iOS Brave等)では
+  // クライアントが localStorage に保存してログイン状態を維持する。
+  const response = NextResponse.json({ ok: true, session });
   response.cookies.set("demo_session", encodeDemoSessionCookie(session), options);
   return response;
 }

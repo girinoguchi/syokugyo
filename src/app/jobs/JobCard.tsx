@@ -1,6 +1,6 @@
 import Link from "next/link";
 import type { Job } from "@/lib/types";
-import { categoryClass, formatDeadline, jobTypeClass } from "@/lib/wordpress/jobs";
+import { categoryClass, formatDeadline, jobTypeClass } from "@/lib/wordpress/job-format";
 
 export function JobCard({ job }: { job: Job }) {
   const deadline = formatDeadline(job.deadline);

@@ -44,7 +44,7 @@ export async function POST(req: Request) {
   setDemoProfile(email, profile);
 
   const session = createDemoSessionPayload(profile);
-  const response = NextResponse.json({ ok: true });
+  const response = NextResponse.json({ ok: true, session });
   response.cookies.set("demo_session", encodeDemoSessionCookie(session), demoSessionCookieOptions(req));
   return response;
 }

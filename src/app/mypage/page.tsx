@@ -4,39 +4,28 @@ import { AppHeader } from "@/components/AppHeader";
 import { Footer } from "@/components/Footer";
 import { MypageContactForm } from "@/components/MypageContactForm";
 import { JobCard } from "@/app/jobs/JobCard";
+import { MypageDemoClient } from "./MypageDemoClient";
 import { getCurrentProfile, getCurrentUser } from "@/lib/auth";
+import { isDemoMode } from "@/lib/demo-auth";
 import { getRecommendedJobs } from "@/lib/wordpress/jobs";
 
-async function debugMypage(hasUser: boolean) {
-  if (process.env.DEMO_DEBUG !== "1") return;
-  try {
-    const { cookies } = await import("next/headers");
-    const { appendFileSync, mkdirSync } = await import("fs");
-    const { join } = await import("path");
-    const { getProjectRoot } = await import("@/lib/project-root");
-    const store = await cookies();
-    const all = store.getAll().map((c) => c.name);
-    const dir = join(getProjectRoot(), ".data");
-    mkdirSync(dir, { recursive: true });
-    appendFileSync(
-      join(dir, "login-debug.log"),
-      JSON.stringify({
-        t: new Date().toISOString(),
-        event: "mypage_visit",
-        hasUser,
-        hasDemoCookie: store.get("demo_session") ? true : false,
-        cookieNames: all,
-      }) + "\n",
-      "utf8"
-    );
-  } catch {
-    // ignore
-  }
-}
-
 export default async function Mypage() {
+  // デモモードは Cookie をブロックするブラウザ(iOS Brave等)に対応するため
+  // localStorage のセッションをクライアント側で読んで表示する。
+  if (isDemoMode()) {
+    return (
+      <div className="min-h-screen flex flex-col bg-telecareer-surface overflow-x-hidden">
+        <AppHeader />
+        <main className="mx-auto max-w-6xl px-4 py-10 flex-1 w-full min-w-0 tc-page-stagger">
+          <span className="tc-eyebrow bg-white">MY PAGE</span>
+          <MypageDemoClient />
+        </main>
+        <Footer />
+      </div>
+    );
+  }
+
   const user = await getCurrentUser();
-  await debugMypage(Boolean(user));
   if (!user) {
     redirect("/login?redirect=/mypage");
   }

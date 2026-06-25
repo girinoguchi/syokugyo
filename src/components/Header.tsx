@@ -7,9 +7,10 @@ type HeaderProps = {
     contact_name?: string | null;
     role?: string;
   } | null;
+  onLogout?: () => void;
 };
 
-export function Header({ user, profile }: HeaderProps) {
+export function Header({ user, profile, onLogout }: HeaderProps) {
   const displayName = profile?.contact_name?.trim() || profile?.company_name?.trim();
 
   return (
@@ -46,11 +47,21 @@ export function Header({ user, profile }: HeaderProps) {
                   {displayName}
                 </span>
               ) : null}
-              <form action="/auth/signout" method="post">
-                <button type="submit" className="text-xs sm:text-sm nav-link-light whitespace-nowrap">
+              {onLogout ? (
+                <button
+                  type="button"
+                  onClick={onLogout}
+                  className="text-xs sm:text-sm nav-link-light whitespace-nowrap"
+                >
                   ログアウト
                 </button>
-              </form>
+              ) : (
+                <form action="/auth/signout" method="post">
+                  <button type="submit" className="text-xs sm:text-sm nav-link-light whitespace-nowrap">
+                    ログアウト
+                  </button>
+                </form>
+              )}
             </>
           ) : (
             <>
