@@ -473,11 +473,22 @@ body {
   /* ===== フォーム ===== */
   .tc-input {
     width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
     background-color: #ffffff;
     border: 2px solid var(--color-ink);
     border-radius: 0.85rem;
     padding: 0.55rem 0.85rem;
     transition: box-shadow 0.12s ease, border-color 0.12s ease;
+  }
+
+  .tc-input[type="date"],
+  .tc-input[type="time"],
+  .tc-input[type="datetime-local"] {
+    display: block;
+    -webkit-appearance: none;
+    appearance: none;
   }
 
   .tc-input:focus {

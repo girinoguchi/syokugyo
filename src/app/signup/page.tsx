@@ -125,14 +125,14 @@ export default function SignupPage() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-telecareer-surface">
+    <div className="min-h-screen flex flex-col bg-telecareer-surface overflow-x-hidden">
       <Header />
-      <main className="mx-auto max-w-md px-4 py-14 flex-1 w-full tc-page-stagger">
+      <main className="mx-auto max-w-md px-4 py-14 flex-1 w-full min-w-0 overflow-x-hidden tc-page-stagger">
         <span className="tc-eyebrow bg-white">SIGN UP</span>
         <h1 className="mt-4 text-3xl font-black text-telecareer-ink mb-6">
           <span className="tc-marker">会員登録</span>
         </h1>
-        <form onSubmit={handleSubmit} className="space-y-4 tc-card p-6 md:p-7">
+        <form onSubmit={handleSubmit} className="space-y-4 tc-card p-6 md:p-7 min-w-0 overflow-hidden">
           {error && (
             <div className="tc-error-enter text-coral-a11y text-sm bg-telecareer-coral/10 p-4 rounded-xl border-2 border-telecareer-coral flex justify-between items-start gap-3">
               <span>{error}</span>
@@ -157,17 +157,17 @@ export default function SignupPage() {
               placeholder="例: 山田 太郎"
             />
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 min-w-0">
+            <div className="min-w-0">
               <label className="tc-label">生年月日</label>
               <input
                 type="date"
                 value={form.birthdate}
                 onChange={(e) => setForm((p) => ({ ...p, birthdate: e.target.value }))}
-                className="tc-input"
+                className="tc-input w-full"
               />
             </div>
-            <div>
+            <div className="min-w-0">
               <label className="tc-label">電話番号</label>
               <input
                 type="tel"
