@@ -23,16 +23,31 @@ export function createDemoSessionPayload(stored: {
   };
 }
 
-export function demoSessionCookieOptions(req: Request) {
-  const proto = req.headers.get("x-forwarded-proto") ?? "";
-  const forwardedSecure = proto.split(",")[0].trim() === "https";
-  let requestSecure = false;
+export function isSecureRequest(req: Request): boolean {
+  // 明示的な強制（クラウドプレビューは常にHTTPS配信のため起動時に設定）
+  if (process.env.DEMO_PUBLIC_HTTPS === "1") return true;
+
+  const xfProto = (req.headers.get("x-forwarded-proto") ?? "").split(",")[0].trim();
+  if (xfProto === "https") return true;
+
+  // RFC7239 Forwarded ヘッダー
+  const forwarded = req.headers.get("forwarded") ?? "";
+  if (/proto=https/i.test(forwarded)) return true;
+
+  // フロントが付けがちな各種ヒント
+  if ((req.headers.get("x-forwarded-ssl") ?? "").toLowerCase() === "on") return true;
+  if (req.headers.get("x-forwarded-protocol") === "https") return true;
+
   try {
-    requestSecure = new URL(req.url).protocol === "https:";
+    if (new URL(req.url).protocol === "https:") return true;
   } catch {
-    requestSecure = false;
+    // ignore
   }
-  const secure = forwardedSecure || requestSecure;
+  return false;
+}
+
+export function demoSessionCookieOptions(req: Request) {
+  const secure = isSecureRequest(req);
   // HTTPS配信時（クラウドプレビューのiframe等クロスサイト文脈を含む）は
   // SameSite=None でないとブラウザがCookieをブロックしログインループになる。
   // SameSite=None は Secure 必須のため、HTTPS時のみ None、HTTP(ローカル)時は Lax。

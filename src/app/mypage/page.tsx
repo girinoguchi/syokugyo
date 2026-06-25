@@ -7,8 +7,36 @@ import { JobCard } from "@/app/jobs/JobCard";
 import { getCurrentProfile, getCurrentUser } from "@/lib/auth";
 import { getRecommendedJobs } from "@/lib/wordpress/jobs";
 
+async function debugMypage(hasUser: boolean) {
+  if (process.env.DEMO_DEBUG !== "1") return;
+  try {
+    const { cookies } = await import("next/headers");
+    const { appendFileSync, mkdirSync } = await import("fs");
+    const { join } = await import("path");
+    const { getProjectRoot } = await import("@/lib/project-root");
+    const store = await cookies();
+    const all = store.getAll().map((c) => c.name);
+    const dir = join(getProjectRoot(), ".data");
+    mkdirSync(dir, { recursive: true });
+    appendFileSync(
+      join(dir, "login-debug.log"),
+      JSON.stringify({
+        t: new Date().toISOString(),
+        event: "mypage_visit",
+        hasUser,
+        hasDemoCookie: store.get("demo_session") ? true : false,
+        cookieNames: all,
+      }) + "\n",
+      "utf8"
+    );
+  } catch {
+    // ignore
+  }
+}
+
 export default async function Mypage() {
   const user = await getCurrentUser();
+  await debugMypage(Boolean(user));
   if (!user) {
     redirect("/login?redirect=/mypage");
   }
