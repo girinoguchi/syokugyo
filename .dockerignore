@@ -5,6 +5,7 @@ node_modules
 !.env.example
 npm-debug.log*
 .DS_Store
-wordpress
+wordpress/*
+!wordpress/seed/
 supabase
 .wp-env

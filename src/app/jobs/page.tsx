@@ -39,7 +39,9 @@ export default async function JobsPage({
           </h1>
           <p className="mt-3 text-gray-600 text-sm">
             エンタメ業界の求人を、雇用形態・職種・エリア・時給などで絞り込めます。
-            {usingWordPress ? " WordPress の更新は最大1分以内に反映されます。" : " デモデータを表示中です。"}
+            {usingWordPress
+              ? " WordPress の更新は最大1分以内に反映されます。"
+              : " WordPress 未接続のため、リポジトリのシードデータ（wordpress/seed/jobs.json）を表示しています。"}
           </p>
         </div>
 

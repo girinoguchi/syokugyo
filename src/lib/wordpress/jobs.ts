@@ -1,4 +1,4 @@
-import { DEMO_JOBS } from "@/lib/demo-jobs";
+import { loadSeedJobs } from "@/lib/seed-jobs";
 import type { Job, JobFilters } from "@/lib/types";
 import { getWordPressApiUrl, JOBS_CACHE_TAG, JOBS_REVALIDATE_SECONDS } from "./config";
 
@@ -154,7 +154,10 @@ async function fetchWordPressJobs(): Promise<Job[] | null> {
 
 export async function getJobs(): Promise<Job[]> {
   const wpJobs = await fetchWordPressJobs();
-  return wpJobs ?? DEMO_JOBS;
+  if (wpJobs) {
+    return wpJobs;
+  }
+  return loadSeedJobs();
 }
 
 export async function getFilteredJobs(filters: JobFilters): Promise<Job[]> {
