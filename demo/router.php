@@ -10,6 +10,11 @@ if ( $uri !== '/' && is_file( $file ) ) {
 	return false;
 }
 
+if ( $uri === '/mobile' || $uri === '/mobile/' ) {
+	require __DIR__ . '/mobile.php';
+	return true;
+}
+
 if ( $uri === '/' || $uri === '/shindan' || $uri === '/shindan/' ) {
 	require __DIR__ . '/index.php';
 	return true;
