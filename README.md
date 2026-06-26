@@ -1,4 +1,29 @@
-# テレキャリア人材マッチング
+# テレキャリアエンジン（telecareer-engine）
+
+エンタメ業界専門求人サービス **「エンジン」**（運営: テレキャリア / 株式会社フォーミュレーションI.T.S.）のリポジトリです。
+
+GitHub名: `girinoguchi/telecareer-engine`  
+Cursorで選ぶときは検索欄に **`telecareer`** と入力してください（日本語名「テレキャリアエンジン」では出ません）。
+
+### Cursor でこのリポジトリを選ぶ
+
+Cursor のリポジトリ一覧に `telecareer-engine` が出ない場合、**GitHub 側で Cursor アプリへのアクセス許可**が必要です。
+
+**手順（スマホでも可）**
+
+1. https://github.com/apps/cursor/installations/new を開く
+2. アカウント `girinoguchi` を選び、**Repository access** で `telecareer-engine` を追加（または **All repositories**）
+3. https://cursor.com/dashboard/integrations を開き、GitHub を **Disconnect → Connect** で再接続
+4. Cloud Agent やリポジトリ選択画面で **`telecareer`** と検索
+
+**Mac/PC がある場合（自動設定）**
+
+```bash
+gh auth login   # 未ログインの場合
+npm run setup:cursor
+```
+
+その後、手順 3 の Cursor 連携の再接続を行ってください。
 
 エンタメ業界で働きたい人（求職者）と、エンタメ求人をつなぐマッチングサービスです。求職者はエキストラ・音響・照明・制作などのエンタメ特化求人を検索・応募でき、管理者は求人の登録・管理と応募の確認ができます。
 

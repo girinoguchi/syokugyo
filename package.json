@@ -1,6 +1,11 @@
 {
-  "name": "telecareer-talent-matching",
+  "name": "telecareer-engine",
   "version": "0.1.0",
+  "description": "テレキャリアエンジン - エンタメ業界専門求人マッチング",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/girinoguchi/telecareer-engine.git"
+  },
   "private": true,
   "scripts": {
     "dev": "npm run sync:media && next dev -H 0.0.0.0 -p 3000",
@@ -12,6 +17,7 @@
     "start": "cd .next/standalone && TELECAREER_PROJECT_ROOT=\"$(cd ../.. && pwd)\" DEMO_PUBLIC_HTTPS=1 DEMO_DEBUG=1 HOSTNAME=0.0.0.0 PORT=3000 node server.js",
     "preview": "npm run build && npm run start",
     "mobile": "bash scripts/start-mobile-preview.sh",
+    "setup:cursor": "bash scripts/enable-cursor-repo.sh",
     "lint": "next lint",
     "docker:demo": "docker compose up --build",
     "docker:demo:detach": "docker compose up --build -d",
