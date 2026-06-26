@@ -249,15 +249,48 @@ const IMAGES = {
   // "PLOD": "https://example.com/PLOD.png",
   // "PLOS": "https://example.com/PLOS.png",
 };
-function avatarHTML(code){
+function typeImageUrl(code){
+  if(IMAGES[code]) return IMAGES[code];
+  const base = (window.CTF && CTF.typeImgBase) ? CTF.typeImgBase : "";
+  return base ? base + "mbti-" + code + ".png" : "";
+}
+
+function loadTypeImage(code){
+  const url = typeImageUrl(code);
+  if(!url) return Promise.reject();
+  return new Promise((resolve, reject)=>{
+    const img = new Image();
+    img.decoding = "async";
+    img.onload = ()=>resolve(img);
+    img.onerror = reject;
+    img.src = url;
+  });
+}
+
+function canvasRoundRect(ctx, x, y, w, h, r){
+  const rr = Math.min(r, w / 2, h / 2);
+  ctx.beginPath();
+  ctx.moveTo(x + rr, y);
+  ctx.arcTo(x + w, y, x + w, y + h, rr);
+  ctx.arcTo(x + w, y + h, x, y + h, rr);
+  ctx.arcTo(x, y + h, x, y, rr);
+  ctx.arcTo(x, y, x + w, y, rr);
+  ctx.closePath();
+}
+
+function avatarHTML(code, opts){
+  if(opts.svgOnly) return AVATARS[code] || "";
   const base = (window.CTF && CTF.typeImgBase) ? CTF.typeImgBase : "";
   const u = IMAGES[code] || (base ? base + "mbti-" + code + ".png" : "");
   if(u){
-    // 画像が無い/失敗した場合は内蔵SVGへフォールバック
     const fallback = (AVATARS[code] || "").replace(/"/g, "&quot;");
-    return `<img class="avatar-photo" src="${u}" alt="" loading="lazy" onerror="this.outerHTML='${fallback}'">`;
+    const lazy = opts.eager ? "" : ' loading="lazy"';
+    let cls = "avatar-photo";
+    if(opts.large) cls += " avatar-photo--lg";
+    if(opts.thumb) cls += " avatar-photo--thumb";
+    return `<img class="${cls}" src="${u}" alt=""${lazy} decoding="async" onerror="this.outerHTML='${fallback}'">`;
   }
-  return AVATARS[code];
+  return AVATARS[code] || "";
 }
 
 const ORDER = Object.keys(TYPES);
@@ -269,7 +302,7 @@ let idx = 0;
 const answers = new Array(QUESTIONS.length).fill(null); // store chosen scale value
 
 /* ----- lead capture (WordPress 連携) ----- */
-window.CTF = window.CTF || { restUrl:"", nonce:"", resumeUrl:"/" };
+window.CTF = window.CTF || { restUrl:"", nonce:"", resumeUrl:"/", pageUrl:"" };
 let ctfCode = "";       // 現在の結果コード（例: PLOD）
 let ctfTypeName = "";   // 現在の結果タイプ名
 let ctfJob = "";        // 現在の職種ラベル
@@ -329,8 +362,9 @@ function ctfScrollAppToTop(){
 function ctfResetApp(){
   idx = 0;
   answers.fill(null);
-  const bar = $("bar");
-  if(bar) bar.style.width = "0%";
+  updateProgress();
+  resetShareMeta();
+  setAppMode("intro");
   show("intro");
 }
 
@@ -364,6 +398,18 @@ document.addEventListener("keydown", e=>{
   if(e.key === "Escape") ctfCloseModal();
 });
 
+function setAppMode(mode){
+  const app = $("ctfApp");
+  if(app) app.dataset.ctfMode = mode;
+}
+
+function updateQuizAmbient(){
+  const el = $("quizAmbient");
+  if(!el) return;
+  const pct = idx / QUESTIONS.length;
+  el.style.setProperty("--quiz-p", String(pct));
+}
+
 function show(stageId){
   const current = document.querySelector(".stage.is-active");
   const next = $(stageId);
@@ -371,6 +417,7 @@ function show(stageId){
   const go = ()=>{
     document.querySelectorAll(".stage").forEach(s=>s.classList.remove("is-active","is-leaving"));
     next.classList.add("is-active");
+    setAppMode(stageId);
     ctfScrollAppToTop();
   };
   if(current && !reducedMotion()){
@@ -379,51 +426,108 @@ function show(stageId){
   } else go();
 }
 
-function start(){ idx=0; answers.fill(null); show("quiz"); renderQ(); }
+function start(){ idx=0; answers.fill(null); resetShareMeta(); show("quiz"); renderQ(); }
 
-function renderQ(){
+function updateProgress(){
+  const n = idx + 1;
+  const pct = Math.round((idx / QUESTIONS.length) * 100);
+  const bar = $("bar");
+  const qpct = $("qpct");
+  const progressBar = $("progressBar");
+  if(bar) bar.style.width = pct + "%";
+  if(qpct) qpct.textContent = pct + "%";
+  if(progressBar){
+    progressBar.setAttribute("aria-valuenow", String(n));
+    progressBar.setAttribute("aria-valuetext", "質問 " + n + " / 32（" + pct + "%）");
+  }
+  updateQuizAmbient();
+}
+
+function slideQuestion(dir, cb){
+  const card = $("qcard");
+  if(!card || reducedMotion()){
+    cb();
+    return;
+  }
+  card.classList.remove("is-from-right","is-from-left","is-enter");
+  card.classList.add(dir > 0 ? "is-exit-left" : "is-exit-right");
+  setTimeout(()=>{
+    card.classList.remove("is-exit-left","is-exit-right");
+    cb();
+  }, 220);
+}
+
+function renderQ(dir){
   const q = QUESTIONS[idx];
-  $("qnum").textContent = idx+1;
-  $("bar").style.width = ((idx)/QUESTIONS.length*100) + "%";
+  $("qnum").textContent = idx + 1;
+  updateProgress();
   $("qtext").textContent = q.t;
-  $("back").disabled = idx===0;
+  $("back").disabled = idx === 0;
 
   const card = $("qcard");
   if(card && !reducedMotion()){
-    card.classList.remove("is-enter");
-    void card.offsetWidth;
-    card.classList.add("is-enter");
+    card.classList.remove("is-enter","is-from-right","is-from-left","is-exit-left","is-exit-right");
+    if(dir){
+      void card.offsetWidth;
+      card.classList.add(dir > 0 ? "is-from-right" : "is-from-left");
+    } else {
+      void card.offsetWidth;
+      card.classList.add("is-enter");
+    }
   }
 
   const box = $("dots");
   box.innerHTML = "";
-  SCALE.forEach((s,i)=>{
+  SCALE.forEach((s, i)=>{
     const b = document.createElement("button");
     b.type = "button";
-    b.className = "dot" + (answers[idx]===s.v ? " is-on" : "");
-    b.style.width = b.style.height = s.size+"px";
+    b.className = "dot" + (answers[idx] === s.v ? " is-on" : "");
+    b.style.width = b.style.height = s.size + "px";
     b.style.setProperty("--c", dotColor(s.side));
-    b.setAttribute("role","radio");
-    b.setAttribute("aria-checked", answers[idx]===s.v ? "true":"false");
+    b.setAttribute("role", "radio");
+    b.setAttribute("aria-checked", answers[idx] === s.v ? "true" : "false");
     b.setAttribute("aria-label", s.label);
-    b.tabIndex = answers[idx]===s.v ? 0 : -1;
+    b.tabIndex = answers[idx] === s.v ? 0 : -1;
     b.dataset.idx = i;
-    b.onclick = ()=>choose(s.v);
+    b.onclick = ()=>choose(s.v, b);
     box.appendChild(b);
+  });
+
+  const qtext = $("qtext");
+  if(qtext) qtext.focus({ preventScroll: true });
+}
+
+function updateDotsOnly(){
+  const box = $("dots");
+  if(!box) return;
+  box.querySelectorAll(".dot").forEach((b, i)=>{
+    const on = answers[idx] === SCALE[i].v;
+    b.classList.toggle("is-on", on);
+    b.setAttribute("aria-checked", on ? "true" : "false");
+    b.tabIndex = on ? 0 : -1;
   });
 }
 
-function choose(v){
+function choose(v, el){
   answers[idx] = v;
-  renderQ();
-  const delay = reducedMotion() ? 0 : 230;
+  if(el && !reducedMotion()){
+    el.classList.add("is-pulse");
+    setTimeout(()=>el.classList.remove("is-pulse"), 280);
+  }
+  updateDotsOnly();
+  const delay = reducedMotion() ? 0 : 260;
   setTimeout(()=>{
-    if(idx < QUESTIONS.length-1){ idx++; renderQ(); }
-    else finish();
+    if(idx < QUESTIONS.length - 1){
+      slideQuestion(1, ()=>{ idx++; renderQ(1); });
+    } else finish();
   }, delay);
 }
 
-function back(){ if(idx>0){ idx--; renderQ(); } }
+function back(){
+  if(idx > 0){
+    slideQuestion(-1, ()=>{ idx--; renderQ(-1); });
+  }
+}
 
 function onQuizKey(e){
   const quiz = $("quiz");
@@ -458,12 +562,93 @@ function score(){
   });
 }
 
+function playCelebrate(cb){
+  if(reducedMotion()){
+    cb();
+    return;
+  }
+  const el = $("ctfCelebrate");
+  if(!el){
+    cb();
+    return;
+  }
+  const colors = ["var(--agree)","var(--disagree)","var(--coral)","var(--grp-pl)","var(--grp-pc)","var(--grp-tl)","var(--grp-tc)"];
+  el.innerHTML = Array.from({ length: 28 }, (_, i)=>
+    `<i class="ctf-confetti" style="--i:${i};--c:${colors[i % colors.length]}"></i>`
+  ).join("");
+  el.hidden = false;
+  setTimeout(()=>{
+    el.hidden = true;
+    el.innerHTML = "";
+    cb();
+  }, 780);
+}
+
 function finish(){
-  $("bar").style.width = "100%";
+  const bar = $("bar");
+  const qpct = $("qpct");
+  const progressBar = $("progressBar");
+  if(bar) bar.style.width = "100%";
+  if(qpct) qpct.textContent = "100%";
+  if(progressBar){
+    progressBar.setAttribute("aria-valuenow", "32");
+    progressBar.setAttribute("aria-valuetext", "診断完了");
+  }
   const res = score();
   const code = res.map(r=>r.key).join("");
   renderResult(code, res);
-  show("result");
+  playCelebrate(()=>show("result"));
+}
+
+function absUrl(path){
+  if(!path) return "";
+  if(/^https?:\/\//i.test(path)) return path;
+  try { return new URL(path, location.origin).href; }
+  catch(e){ return path; }
+}
+
+function getShareUrl(code){
+  const base = (window.CTF && CTF.pageUrl) ? CTF.pageUrl : location.href.split("?")[0].split("#")[0];
+  const u = new URL(base, location.origin);
+  u.search = "";
+  u.hash = "";
+  if(code) u.searchParams.set("t", code);
+  return u.toString();
+}
+
+function setMeta(attr, key, content){
+  if(!content) return;
+  let el = document.querySelector(`meta[${attr}="${key}"]`);
+  if(!el){
+    el = document.createElement("meta");
+    el.setAttribute(attr, key);
+    document.head.appendChild(el);
+  }
+  el.setAttribute("content", content);
+}
+
+function updateShareMeta(code, job, name){
+  const title = `私の仕事タイプは「${job}」（${code}）`;
+  document.title = title + " | キャリア・タイプ診断";
+  const desc = `${name} — 32問の職業タイプ診断の結果`;
+  const url = getShareUrl(code);
+  const img = absUrl(typeImageUrl(code));
+  setMeta("property", "og:title", title);
+  setMeta("property", "og:description", desc);
+  setMeta("property", "og:url", url);
+  setMeta("property", "og:type", "website");
+  if(img) setMeta("property", "og:image", img);
+  setMeta("name", "twitter:card", "summary_large_image");
+  setMeta("name", "twitter:title", title);
+  setMeta("name", "twitter:description", desc);
+  if(img) setMeta("name", "twitter:image", img);
+  history.replaceState(null, "", url);
+}
+
+function resetShareMeta(){
+  document.title = "職業タイプ診断 | キャリア・タイプ診断";
+  const base = (window.CTF && CTF.pageUrl) ? CTF.pageUrl : location.pathname;
+  history.replaceState(null, "", base);
 }
 
 function shareText(code, job, name){
@@ -472,18 +657,142 @@ function shareText(code, job, name){
 
 function shareX(){
   const text = encodeURIComponent(shareText(ctfCode, ctfJob, ctfTypeName));
-  const url = encodeURIComponent(location.href.split("#")[0]);
+  const url = encodeURIComponent(getShareUrl(ctfCode));
   window.open(`https://twitter.com/intent/tweet?text=${text}&url=${url}`, "_blank", "noopener,noreferrer");
 }
 
 function shareCopy(){
-  const msg = shareText(ctfCode, ctfJob, ctfTypeName) + "\n" + location.href.split("#")[0];
+  const msg = shareText(ctfCode, ctfJob, ctfTypeName) + "\n" + getShareUrl(ctfCode);
   if(navigator.clipboard && navigator.clipboard.writeText){
     navigator.clipboard.writeText(msg).then(()=>{
       const el = $("shareMsg");
       if(el){ el.textContent = "リンクをコピーしました"; setTimeout(()=>{ el.textContent=""; }, 2500); }
     });
   }
+}
+
+function downloadCanvasPng(canvas){
+  canvas.toBlob(blob=>{
+    if(!blob) return;
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = "career-type-" + ctfCode + ".png";
+    a.click();
+    URL.revokeObjectURL(a.href);
+    const el = $("shareMsg");
+    if(el){ el.textContent = "画像を保存しました"; setTimeout(()=>{ el.textContent=""; }, 2500); }
+  }, "image/png");
+}
+
+function drawShareCanvas(ctx, w, h, data){
+  const { g, ch, t, code, job, img } = data;
+  const font = '"Hiragino Sans","Noto Sans JP","Yu Gothic",system-ui,sans-serif';
+  const bg = g ? g.bg : "#EFF2F8";
+  const accent = g ? g.color : "#FF6B5B";
+  const dark = g ? g.dark : "#16243F";
+
+  ctx.fillStyle = bg;
+  ctx.fillRect(0, 0, w, h);
+  const grad = ctx.createRadialGradient(w * 0.5, h * 0.15, 0, w * 0.5, h * 0.15, w * 0.75);
+  grad.addColorStop(0, accent + "40");
+  grad.addColorStop(1, "transparent");
+  ctx.fillStyle = grad;
+  ctx.fillRect(0, 0, w, h);
+
+  ctx.fillStyle = dark;
+  ctx.font = `600 28px ${font}`;
+  ctx.textAlign = "center";
+  ctx.fillText("キャリア・タイプ診断", w / 2, 96);
+
+  ctx.font = `800 108px ui-monospace,Menlo,monospace`;
+  ctx.fillStyle = accent;
+  ctx.fillText(code, w / 2, 210);
+
+  ctx.font = `800 48px ${font}`;
+  ctx.fillStyle = dark;
+  ctx.fillText(job, w / 2, 290);
+
+  let textY = 360;
+  if(img){
+    const iw = 560, ih = 374;
+    const ix = (w - iw) / 2, iy = 330;
+    ctx.save();
+    canvasRoundRect(ctx, ix, iy, iw, ih, 28);
+    ctx.clip();
+    ctx.drawImage(img, ix, iy, iw, ih);
+    ctx.restore();
+    ctx.strokeStyle = accent + "55";
+    ctx.lineWidth = 4;
+    canvasRoundRect(ctx, ix, iy, iw, ih, 28);
+    ctx.stroke();
+    textY = iy + ih + 56;
+  }
+
+  if(g){
+    ctx.font = `700 30px ${font}`;
+    ctx.fillStyle = accent;
+    ctx.fillText(g.emoji + " " + g.name, w / 2, textY);
+    textY += 52;
+  }
+
+  if(ch){
+    ctx.font = `700 34px ${font}`;
+    ctx.fillStyle = "#FF6B5B";
+    const cry = "“" + ch.cry + "”";
+    wrapCanvasText(ctx, cry, w / 2, textY + 20, w - 120, 46);
+    textY += 100;
+  }
+
+  if(t){
+    ctx.font = `600 28px ${font}`;
+    ctx.fillStyle = "#5A6B85";
+    wrapCanvasText(ctx, t.name, w / 2, textY + 20, w - 120, 40);
+  }
+
+  ctx.font = `500 24px ${font}`;
+  ctx.fillStyle = "#94A2BB";
+  ctx.fillText("職業タイプ診断 · 16 types", w / 2, h - 72);
+}
+
+async function shareDownloadImage(){
+  if(!ctfCode) return;
+  const btn = document.querySelector(".share-btn--img");
+  if(btn){ btn.disabled = true; btn.textContent = "生成中…"; }
+
+  const canvas = document.createElement("canvas");
+  const w = 1080, h = 1350;
+  canvas.width = w;
+  canvas.height = h;
+  const ctx = canvas.getContext("2d");
+  if(!ctx) return;
+
+  const g = groupOf(ctfCode);
+  const ch = CHARS[ctfCode];
+  const t = TYPES[ctfCode];
+  let img = null;
+  try { img = await loadTypeImage(ctfCode); } catch(e){ /* SVG fallback only in preview */ }
+
+  drawShareCanvas(ctx, w, h, {
+    g, ch, t, code: ctfCode, job: ctfJob, img
+  });
+  downloadCanvasPng(canvas);
+
+  if(btn){ btn.disabled = false; btn.textContent = "画像を保存"; }
+}
+
+function wrapCanvasText(ctx, text, x, y, maxWidth, lineHeight){
+  const chars = text.split("");
+  let line = "";
+  const lines = [];
+  chars.forEach(ch=>{
+    const test = line + ch;
+    if(ctx.measureText(test).width > maxWidth && line){
+      lines.push(line);
+      line = ch;
+    } else line = test;
+  });
+  if(line) lines.push(line);
+  lines.forEach((ln, i)=>ctx.fillText(ln, x, y + i * lineHeight));
 }
 
 /* ----- render result ----- */
@@ -497,6 +806,7 @@ function renderResult(code, res){
   ctfCode = code;
   ctfTypeName = t.name;
   ctfJob = job;
+  updateShareMeta(code, job, t.name);
 
   const bars = res.map(r=>{
     const win = r.winner==="p1" ? r.ax.p1 : r.ax.p2;
@@ -526,11 +836,11 @@ function renderResult(code, res){
   const coded = code.split("").map(c=>`<b>${c}</b>`).join("");
 
   $("result").innerHTML = `
-    <div class="card">
+    <div class="card res-card is-revealing">
       <div class="res-head" style="--gc:${g.color};--gbg:${g.bg};--gd:${g.dark}">
         <div class="res-code" aria-label="タイプコード ${code}">${coded}</div>
         <div class="res-job">${job}</div>
-        <div class="avatar avatar--lg" role="img" aria-label="${ch.role}">${avatarHTML(code)}</div>
+        <div class="avatar avatar--lg" role="img" aria-label="${ch.role}">${avatarHTML(code, { large: true, eager: true })}</div>
         <div class="res-group">${g.emoji} ${g.name}<small>${g.axis}</small></div>
         <p class="res-cry">“${ch.cry}”</p>
         <div class="res-name">${t.name}</div>
@@ -606,9 +916,19 @@ function renderResult(code, res){
     </div>
 
     <div class="res-share">
+      <div class="share-card" id="shareCardPreview" style="--gc:${g.color};--gbg:${g.bg};--gd:${g.dark}">
+        <div class="share-card__brand">キャリア・タイプ診断</div>
+        <div class="share-card__code">${code}</div>
+        <div class="share-card__job">${job}</div>
+        <div class="share-card__avatar">${avatarHTML(code, { large: true, eager: true })}</div>
+        <div class="share-card__group">${g.emoji} ${g.name}</div>
+        <p class="share-card__cry">“${ch.cry}”</p>
+        <div class="share-card__name">${t.name}</div>
+      </div>
       <span class="res-share-lbl">結果をシェア</span>
       <div class="res-share-btns">
         <button class="share-btn share-btn--x" type="button" onclick="shareX()">X でシェア</button>
+        <button class="share-btn share-btn--img" type="button" onclick="shareDownloadImage()">画像を保存</button>
         <button class="share-btn share-btn--copy" type="button" onclick="shareCopy()">リンクをコピー</button>
       </div>
       <p class="share-msg" id="shareMsg" role="status" aria-live="polite"></p>
@@ -624,12 +944,20 @@ function renderResult(code, res){
     </div>
   `;
 
-  // animate bars after paint
   const animBars = ()=>{
-    document.querySelectorAll(".bar-fill").forEach(el=>{ el.style.width = el.dataset.w + "%"; });
+    document.querySelectorAll(".bar-fill").forEach((el, i)=>{
+      if(reducedMotion()) el.style.width = el.dataset.w + "%";
+      else setTimeout(()=>{ el.style.width = el.dataset.w + "%"; }, 80 + i * 90);
+    });
   };
-  if(reducedMotion()) animBars();
-  else requestAnimationFrame(()=>requestAnimationFrame(animBars));
+  requestAnimationFrame(()=>requestAnimationFrame(animBars));
+
+  if(!reducedMotion()){
+    const card = document.querySelector(".res-card.is-revealing");
+    if(card){
+      setTimeout(()=>card.classList.add("is-revealed"), 40);
+    }
+  }
 }
 
 /* ----- gallery + cast ----- */
@@ -639,7 +967,7 @@ function renderGallery(){
     const cards = g.codes.map(code=>{
       const t=TYPES[code];
       return `<button class="tcard" type="button" onclick="showTypePreview('${code}')" aria-label="${JOBS[code]} ${code}">
-        <div class="avatar" role="img" aria-hidden="true">${avatarHTML(code)}</div>
+        <div class="avatar" role="img" aria-hidden="true">${avatarHTML(code, { thumb: true })}</div>
         <div class="tjob">${JOBS[code]}</div>
         <div class="tcode">${code}</div>
       </button>`;
@@ -664,15 +992,34 @@ function renderGallery(){
       ${quad}
     </div>
     <div class="res-foot"><button class="btn" type="button" onclick="start()">診断をはじめる</button></div>`;
+  if(!reducedMotion()){
+    document.querySelectorAll(".tcard").forEach((el, i)=>{
+      el.classList.add("tcard--pop");
+      el.style.animationDelay = (i * 0.045) + "s";
+    });
+  }
+}
+
+function fakeResultForCode(code){
+  return code.split("").map((ch, i)=>{
+    const ax = AXES[i];
+    const isP1 = ax.p1.k === ch;
+    return { ax, winner: isP1 ? "p1" : "p2", strength: 62, key: ch };
+  });
+}
+
+function initFromUrl(){
+  const params = new URLSearchParams(location.search);
+  const hash = location.hash.replace(/^#/, "").toUpperCase();
+  const raw = (params.get("t") || params.get("type") || hash || "").toUpperCase();
+  if(!raw || !TYPES[raw]) return false;
+  renderResult(raw, fakeResultForCode(raw));
+  show("result");
+  return true;
 }
 
 function showTypePreview(code){
-  const fakeRes = code.split("").map((ch,i)=>{
-    const ax = AXES[i];
-    const isP1 = ax.p1.k === ch;
-    return {ax, winner:isP1?"p1":"p2", strength:62, key:ch};
-  });
-  renderResult(code, fakeRes);
+  renderResult(code, fakeResultForCode(code));
   show("result");
 }
 function initCast(){
@@ -680,8 +1027,9 @@ function initCast(){
   if(row) row.innerHTML = ORDER.map(c=>{
     const g = groupOf(c);
     return `<button class="cast-avatar" type="button" style="--gc:${g.color}" onclick="openGallery()" aria-label="${JOBS[c]} ${c}">
-      <span class="avatar" aria-hidden="true">${avatarHTML(c)}</span>
+      <span class="avatar" aria-hidden="true">${avatarHTML(c, { svgOnly: true })}</span>
     </button>`;
   }).join("");
 }
 initCast();
+if(!initFromUrl()) setAppMode("intro");

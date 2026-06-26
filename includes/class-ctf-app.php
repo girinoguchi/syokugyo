@@ -23,6 +23,7 @@ class CTF_App {
 	public function __construct() {
 		add_shortcode( self::SHORTCODE, array( $this, 'render' ) );
 		add_action( 'wp_enqueue_scripts', array( $this, 'register_assets' ) );
+		add_action( 'wp_head', array( $this, 'maybe_output_og_tags' ), 5 );
 		add_action( 'wp_footer', array( $this, 'maybe_render_global_launcher' ), 20 );
 		add_filter( 'theme_page_templates', array( $this, 'register_page_template' ) );
 		add_filter( 'template_include', array( $this, 'load_page_template' ) );
@@ -180,8 +181,53 @@ class CTF_App {
 				'nonce'       => wp_create_nonce( 'wp_rest' ),
 				'resumeUrl'   => self::resume_url(),
 				'typeImgBase' => $type_img_base,
+				'pageUrl'     => is_singular() ? get_permalink() : home_url( '/' ),
 			)
 		);
+	}
+
+	/**
+	 * 共有URL（?t=タイプコード）向け OGP（クローラー用）。
+	 */
+	public function maybe_output_og_tags() {
+		if ( ! is_singular( 'page' ) ) {
+			return;
+		}
+
+		global $post;
+		if ( ! $post || ! has_shortcode( $post->post_content, self::SHORTCODE ) ) {
+			return;
+		}
+
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		$code = isset( $_GET['t'] ) ? strtoupper( sanitize_text_field( wp_unslash( $_GET['t'] ) ) ) : '';
+		if ( ! preg_match( '/^[PT][LC][OF][DS]$/', $code ) ) {
+			return;
+		}
+
+		$title = sprintf( '仕事タイプ診断の結果：%s', $code );
+		$desc  = '32問のキャリア・タイプ診断。あなたの仕事タイプと強みをチェック。';
+		$url   = add_query_arg( 't', $code, get_permalink( $post ) );
+		$img   = '';
+
+		$img_path = CTF_PLUGIN_DIR . 'assets/img/types/mbti-' . $code . '.png';
+		if ( file_exists( $img_path ) ) {
+			$img = CTF_PLUGIN_URL . 'assets/img/types/mbti-' . $code . '.png';
+		}
+
+		echo '<meta property="og:type" content="website" />' . "\n";
+		echo '<meta property="og:title" content="' . esc_attr( $title ) . '" />' . "\n";
+		echo '<meta property="og:description" content="' . esc_attr( $desc ) . '" />' . "\n";
+		echo '<meta property="og:url" content="' . esc_url( $url ) . '" />' . "\n";
+		if ( $img ) {
+			echo '<meta property="og:image" content="' . esc_url( $img ) . '" />' . "\n";
+		}
+		echo '<meta name="twitter:card" content="summary_large_image" />' . "\n";
+		echo '<meta name="twitter:title" content="' . esc_attr( $title ) . '" />' . "\n";
+		echo '<meta name="twitter:description" content="' . esc_attr( $desc ) . '" />' . "\n";
+		if ( $img ) {
+			echo '<meta name="twitter:image" content="' . esc_url( $img ) . '" />' . "\n";
+		}
 	}
 
 	/**
