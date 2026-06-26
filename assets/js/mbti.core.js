@@ -366,6 +366,18 @@ document.addEventListener("keydown", e=>{
   if(e.key === "Escape") ctfCloseModal();
 });
 
+function setAppMode(mode){
+  const app = $("ctfApp");
+  if(app) app.dataset.ctfMode = mode;
+}
+
+function updateQuizAmbient(){
+  const el = $("quizAmbient");
+  if(!el) return;
+  const pct = idx / QUESTIONS.length;
+  el.style.setProperty("--quiz-p", String(pct));
+}
+
 function show(stageId){
   const current = document.querySelector(".stage.is-active");
   const next = $(stageId);
@@ -373,6 +385,7 @@ function show(stageId){
   const go = ()=>{
     document.querySelectorAll(".stage").forEach(s=>s.classList.remove("is-active","is-leaving"));
     next.classList.add("is-active");
+    setAppMode(stageId);
     ctfScrollAppToTop();
   };
   if(current && !reducedMotion()){
@@ -395,6 +408,7 @@ function updateProgress(){
     progressBar.setAttribute("aria-valuenow", String(n));
     progressBar.setAttribute("aria-valuetext", "質問 " + n + " / 32（" + pct + "%）");
   }
+  updateQuizAmbient();
 }
 
 function renderQ(){
@@ -517,6 +531,94 @@ function shareCopy(){
   }
 }
 
+function shareDownloadImage(){
+  const canvas = document.createElement("canvas");
+  const w = 1080, h = 1350;
+  canvas.width = w;
+  canvas.height = h;
+  const ctx = canvas.getContext("2d");
+  if(!ctx || !ctfCode) return;
+
+  const g = groupOf(ctfCode);
+  const ch = CHARS[ctfCode];
+  const t = TYPES[ctfCode];
+  const font = '"Hiragino Sans","Noto Sans JP","Yu Gothic",system-ui,sans-serif';
+
+  const bg = g ? g.bg : "#EFF2F8";
+  const accent = g ? g.color : "#FF6B5B";
+  const dark = g ? g.dark : "#16243F";
+
+  ctx.fillStyle = bg;
+  ctx.fillRect(0, 0, w, h);
+  const grad = ctx.createRadialGradient(w * 0.5, h * 0.2, 0, w * 0.5, h * 0.2, w * 0.7);
+  grad.addColorStop(0, accent + "33");
+  grad.addColorStop(1, "transparent");
+  ctx.fillStyle = grad;
+  ctx.fillRect(0, 0, w, h);
+
+  ctx.fillStyle = dark;
+  ctx.font = `600 28px ${font}`;
+  ctx.textAlign = "center";
+  ctx.fillText("キャリア・タイプ診断", w / 2, 100);
+
+  ctx.font = `800 120px ui-monospace,Menlo,monospace`;
+  ctx.fillStyle = accent;
+  ctx.fillText(ctfCode, w / 2, 280);
+
+  ctx.font = `800 52px ${font}`;
+  ctx.fillStyle = dark;
+  ctx.fillText(ctfJob, w / 2, 380);
+
+  if(g){
+    ctx.font = `700 32px ${font}`;
+    ctx.fillStyle = accent;
+    ctx.fillText(g.emoji + " " + g.name, w / 2, 460);
+  }
+
+  if(ch){
+    ctx.font = `700 36px ${font}`;
+    ctx.fillStyle = "#FF6B5B";
+    const cry = "“" + ch.cry + "”";
+    wrapCanvasText(ctx, cry, w / 2, 560, w - 120, 48);
+  }
+
+  if(t){
+    ctx.font = `600 30px ${font}`;
+    ctx.fillStyle = "#5A6B85";
+    wrapCanvasText(ctx, t.name, w / 2, 700, w - 120, 42);
+  }
+
+  ctx.font = `500 24px ${font}`;
+  ctx.fillStyle = "#94A2BB";
+  ctx.fillText("職業タイプ診断 · 16 types", w / 2, h - 80);
+
+  canvas.toBlob(blob=>{
+    if(!blob) return;
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = "career-type-" + ctfCode + ".png";
+    a.click();
+    URL.revokeObjectURL(a.href);
+    const el = $("shareMsg");
+    if(el){ el.textContent = "画像を保存しました"; setTimeout(()=>{ el.textContent=""; }, 2500); }
+  }, "image/png");
+}
+
+function wrapCanvasText(ctx, text, x, y, maxWidth, lineHeight){
+  const chars = text.split("");
+  let line = "";
+  const lines = [];
+  chars.forEach(ch=>{
+    const test = line + ch;
+    if(ctx.measureText(test).width > maxWidth && line){
+      lines.push(line);
+      line = ch;
+    } else line = test;
+  });
+  if(line) lines.push(line);
+  lines.forEach((ln, i)=>ctx.fillText(ln, x, y + i * lineHeight));
+}
+
 /* ----- render result ----- */
 function renderResult(code, res){
   const t = TYPES[code];
@@ -637,9 +739,18 @@ function renderResult(code, res){
     </div>
 
     <div class="res-share">
+      <div class="share-card" id="shareCardPreview" style="--gc:${g.color};--gbg:${g.bg};--gd:${g.dark}">
+        <div class="share-card__brand">キャリア・タイプ診断</div>
+        <div class="share-card__code">${code}</div>
+        <div class="share-card__job">${job}</div>
+        <div class="share-card__group">${g.emoji} ${g.name}</div>
+        <p class="share-card__cry">“${ch.cry}”</p>
+        <div class="share-card__name">${t.name}</div>
+      </div>
       <span class="res-share-lbl">結果をシェア</span>
       <div class="res-share-btns">
         <button class="share-btn share-btn--x" type="button" onclick="shareX()">X でシェア</button>
+        <button class="share-btn share-btn--img" type="button" onclick="shareDownloadImage()">画像を保存</button>
         <button class="share-btn share-btn--copy" type="button" onclick="shareCopy()">リンクをコピー</button>
       </div>
       <p class="share-msg" id="shareMsg" role="status" aria-live="polite"></p>
@@ -724,3 +835,4 @@ function initCast(){
   }).join("");
 }
 initCast();
+setAppMode("intro");
