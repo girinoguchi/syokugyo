@@ -93,15 +93,8 @@ export function filterJobs(jobs: Job[], filters: JobFilters): Job[] {
   if (filters.category) {
     result = result.filter((job) => job.category === filters.category);
   }
-  if (filters.payType) {
-    result = result.filter((job) => job.pay_type === filters.payType);
-  }
   if (filters.area) {
     result = result.filter((job) => job.location?.includes(filters.area!));
-  }
-  if (filters.wageMin) {
-    const min = Number(filters.wageMin);
-    result = result.filter((job) => job.wage_min != null && job.wage_min >= min);
   }
   if (filters.inexperienced === "1") {
     result = result.filter(matchesInexperienced);
@@ -118,8 +111,6 @@ export function filterJobs(jobs: Job[], filters: JobFilters): Job[] {
       if (!b.deadline) return -1;
       return a.deadline.localeCompare(b.deadline);
     });
-  } else if (sort === "wage") {
-    result = [...result].sort((a, b) => (b.wage_min ?? 0) - (a.wage_min ?? 0));
   } else {
     result = [...result].sort((a, b) => b.created_at.localeCompare(a.created_at));
   }

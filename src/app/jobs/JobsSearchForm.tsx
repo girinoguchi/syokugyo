@@ -7,15 +7,19 @@ import {
   JOB_CATEGORY_OPTIONS,
   JOB_SORT_OPTIONS,
   JOB_TYPE_OPTIONS,
-  PAY_TYPE_OPTIONS,
 } from "@/lib/types";
 import type { JobFilters } from "@/lib/types";
 
 const inputSm =
   "w-full min-w-0 box-border bg-white border-2 border-ink rounded-lg px-2.5 py-1.5 text-sm transition-[box-shadow,border-color] focus:outline-none focus:border-telecareer-orange focus:shadow-[0_0_0_2px_rgba(245,124,32,0.2)]";
 
+function filtersKey(filters: JobFilters): string {
+  return [filters.q, filters.category, filters.jobType, filters.area, filters.sort].join("\0");
+}
+
 export function JobsSearchForm({ filters }: { filters: JobFilters }) {
   const router = useRouter();
+  const formKey = filtersKey(filters);
 
   const buildHref = (patch: Partial<JobFilters>) => {
     const next: JobFilters = { ...filters, ...patch };
@@ -24,7 +28,6 @@ export function JobsSearchForm({ filters }: { filters: JobFilters }) {
     if (next.category) params.set("category", next.category);
     if (next.jobType) params.set("jobType", next.jobType);
     if (next.area) params.set("area", next.area);
-    if (next.payType) params.set("payType", next.payType);
     if (next.sort && next.sort !== "new") params.set("sort", next.sort);
     const query = params.toString();
     return query ? `/jobs?${query}` : "/jobs";
@@ -36,7 +39,6 @@ export function JobsSearchForm({ filters }: { filters: JobFilters }) {
     const q = (form.querySelector('[name="q"]') as HTMLInputElement)?.value ?? "";
     const category = (form.querySelector('[name="category"]') as HTMLSelectElement)?.value ?? "";
     const area = (form.querySelector('[name="area"]') as HTMLSelectElement)?.value ?? "";
-    const payType = (form.querySelector('[name="payType"]') as HTMLSelectElement)?.value ?? "";
     const sort = (form.querySelector('[name="sort"]') as HTMLSelectElement)?.value ?? "new";
 
     const params = new URLSearchParams();
@@ -44,9 +46,14 @@ export function JobsSearchForm({ filters }: { filters: JobFilters }) {
     if (q) params.set("q", q);
     if (category) params.set("category", category);
     if (area) params.set("area", area);
-    if (payType) params.set("payType", payType);
     if (sort && sort !== "new") params.set("sort", sort);
-    router.push(`/jobs?${params.toString()}`);
+    const query = params.toString();
+    router.push(query ? `/jobs?${query}` : "/jobs");
+  };
+
+  const handleReset = () => {
+    router.push("/jobs");
+    router.refresh();
   };
 
   return (
@@ -75,6 +82,7 @@ export function JobsSearchForm({ filters }: { filters: JobFilters }) {
       </div>
 
       <form
+        key={formKey}
         onSubmit={handleSubmit}
         className="tc-card-soft p-3 sm:p-4 space-y-2.5"
       >
@@ -124,16 +132,8 @@ export function JobsSearchForm({ filters }: { filters: JobFilters }) {
           </button>
         </div>
 
-        {/* サブ行: 給与・並び・リセット */}
+        {/* サブ行: 並び・リセット */}
         <div className="flex flex-wrap items-center gap-2 pt-0.5 border-t border-ink/10">
-          <select name="payType" defaultValue={filters.payType ?? ""} className={`${inputSm} w-auto min-w-[7.5rem] flex-1 sm:flex-none`}>
-            <option value="">給与形態</option>
-            {PAY_TYPE_OPTIONS.filter(Boolean).map((payType) => (
-              <option key={payType} value={payType}>
-                {payType}
-              </option>
-            ))}
-          </select>
           <select name="sort" defaultValue={filters.sort || "new"} className={`${inputSm} w-auto min-w-[6.5rem] flex-1 sm:flex-none`}>
             {JOB_SORT_OPTIONS.map((option) => (
               <option key={option.value} value={option.value}>
@@ -141,12 +141,13 @@ export function JobsSearchForm({ filters }: { filters: JobFilters }) {
               </option>
             ))}
           </select>
-          <Link
-            href="/jobs"
+          <button
+            type="button"
+            onClick={handleReset}
             className="text-xs font-bold text-gray-500 hover:text-telecareer-coral whitespace-nowrap ml-auto"
           >
             リセット
-          </Link>
+          </button>
         </div>
       </form>
     </div>

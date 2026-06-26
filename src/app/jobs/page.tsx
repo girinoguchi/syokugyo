@@ -19,9 +19,6 @@ export default async function JobsPage({
     category: typeof params.category === "string" ? params.category : "",
     jobType: typeof params.jobType === "string" ? params.jobType : "",
     area: typeof params.area === "string" ? params.area : "",
-    payType: typeof params.payType === "string" ? params.payType : "",
-    wageMin: typeof params.wageMin === "string" ? params.wageMin : "",
-    inexperienced: typeof params.inexperienced === "string" ? params.inexperienced : "",
     sort: typeof params.sort === "string" ? params.sort : "new",
   };
 
