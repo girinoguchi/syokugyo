@@ -67,8 +67,8 @@ export function AdminDemoDashboard() {
         <Link href="/admin/jobs?new=1" className="btn-cta px-5 py-2.5 font-bold">
           + 求人を新規登録
         </Link>
-        <Link href="/jobs" className="btn-outline-coral px-5 py-2.5 font-bold">
-          公開中の求人一覧を見る
+        <Link href="/admin/jobs" className="btn-outline-coral px-5 py-2.5 font-bold">
+          案件管理を見る
         </Link>
       </div>
     </div>
