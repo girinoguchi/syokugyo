@@ -249,15 +249,18 @@ const IMAGES = {
   // "PLOD": "https://example.com/PLOD.png",
   // "PLOS": "https://example.com/PLOS.png",
 };
-function avatarHTML(code){
+function avatarHTML(code, opts){
+  opts = opts || {};
+  if(opts.svgOnly) return AVATARS[code] || "";
   const base = (window.CTF && CTF.typeImgBase) ? CTF.typeImgBase : "";
   const u = IMAGES[code] || (base ? base + "mbti-" + code + ".png" : "");
   if(u){
-    // 画像が無い/失敗した場合は内蔵SVGへフォールバック
     const fallback = (AVATARS[code] || "").replace(/"/g, "&quot;");
-    return `<img class="avatar-photo" src="${u}" alt="" loading="lazy" onerror="this.outerHTML='${fallback}'">`;
+    const lazy = opts.eager ? "" : ' loading="lazy"';
+    const cls = opts.large ? "avatar-photo avatar-photo--lg" : "avatar-photo";
+    return `<img class="${cls}" src="${u}" alt=""${lazy} decoding="async" onerror="this.outerHTML='${fallback}'">`;
   }
-  return AVATARS[code];
+  return AVATARS[code] || "";
 }
 
 const ORDER = Object.keys(TYPES);
@@ -329,8 +332,7 @@ function ctfScrollAppToTop(){
 function ctfResetApp(){
   idx = 0;
   answers.fill(null);
-  const bar = $("bar");
-  if(bar) bar.style.width = "0%";
+  updateProgress();
   show("intro");
 }
 
@@ -381,12 +383,26 @@ function show(stageId){
 
 function start(){ idx=0; answers.fill(null); show("quiz"); renderQ(); }
 
+function updateProgress(){
+  const n = idx + 1;
+  const pct = Math.round((idx / QUESTIONS.length) * 100);
+  const bar = $("bar");
+  const qpct = $("qpct");
+  const progressBar = $("progressBar");
+  if(bar) bar.style.width = pct + "%";
+  if(qpct) qpct.textContent = pct + "%";
+  if(progressBar){
+    progressBar.setAttribute("aria-valuenow", String(n));
+    progressBar.setAttribute("aria-valuetext", "質問 " + n + " / 32（" + pct + "%）");
+  }
+}
+
 function renderQ(){
   const q = QUESTIONS[idx];
-  $("qnum").textContent = idx+1;
-  $("bar").style.width = ((idx)/QUESTIONS.length*100) + "%";
+  $("qnum").textContent = idx + 1;
+  updateProgress();
   $("qtext").textContent = q.t;
-  $("back").disabled = idx===0;
+  $("back").disabled = idx === 0;
 
   const card = $("qcard");
   if(card && !reducedMotion()){
@@ -397,28 +413,35 @@ function renderQ(){
 
   const box = $("dots");
   box.innerHTML = "";
-  SCALE.forEach((s,i)=>{
+  SCALE.forEach((s, i)=>{
     const b = document.createElement("button");
     b.type = "button";
-    b.className = "dot" + (answers[idx]===s.v ? " is-on" : "");
-    b.style.width = b.style.height = s.size+"px";
+    b.className = "dot" + (answers[idx] === s.v ? " is-on" : "");
+    b.style.width = b.style.height = s.size + "px";
     b.style.setProperty("--c", dotColor(s.side));
-    b.setAttribute("role","radio");
-    b.setAttribute("aria-checked", answers[idx]===s.v ? "true":"false");
+    b.setAttribute("role", "radio");
+    b.setAttribute("aria-checked", answers[idx] === s.v ? "true" : "false");
     b.setAttribute("aria-label", s.label);
-    b.tabIndex = answers[idx]===s.v ? 0 : -1;
+    b.tabIndex = answers[idx] === s.v ? 0 : -1;
     b.dataset.idx = i;
-    b.onclick = ()=>choose(s.v);
+    b.onclick = ()=>choose(s.v, b);
     box.appendChild(b);
   });
+
+  const qtext = $("qtext");
+  if(qtext) qtext.focus({ preventScroll: true });
 }
 
-function choose(v){
+function choose(v, el){
   answers[idx] = v;
+  if(el && !reducedMotion()){
+    el.classList.add("is-pulse");
+    setTimeout(()=>el.classList.remove("is-pulse"), 280);
+  }
   renderQ();
-  const delay = reducedMotion() ? 0 : 230;
+  const delay = reducedMotion() ? 0 : 260;
   setTimeout(()=>{
-    if(idx < QUESTIONS.length-1){ idx++; renderQ(); }
+    if(idx < QUESTIONS.length - 1){ idx++; renderQ(); }
     else finish();
   }, delay);
 }
@@ -459,7 +482,15 @@ function score(){
 }
 
 function finish(){
-  $("bar").style.width = "100%";
+  const bar = $("bar");
+  const qpct = $("qpct");
+  const progressBar = $("progressBar");
+  if(bar) bar.style.width = "100%";
+  if(qpct) qpct.textContent = "100%";
+  if(progressBar){
+    progressBar.setAttribute("aria-valuenow", "32");
+    progressBar.setAttribute("aria-valuetext", "診断完了");
+  }
   const res = score();
   const code = res.map(r=>r.key).join("");
   renderResult(code, res);
@@ -526,11 +557,11 @@ function renderResult(code, res){
   const coded = code.split("").map(c=>`<b>${c}</b>`).join("");
 
   $("result").innerHTML = `
-    <div class="card">
+    <div class="card res-card is-revealing">
       <div class="res-head" style="--gc:${g.color};--gbg:${g.bg};--gd:${g.dark}">
         <div class="res-code" aria-label="タイプコード ${code}">${coded}</div>
         <div class="res-job">${job}</div>
-        <div class="avatar avatar--lg" role="img" aria-label="${ch.role}">${avatarHTML(code)}</div>
+        <div class="avatar avatar--lg" role="img" aria-label="${ch.role}">${avatarHTML(code, { large: true, eager: true })}</div>
         <div class="res-group">${g.emoji} ${g.name}<small>${g.axis}</small></div>
         <p class="res-cry">“${ch.cry}”</p>
         <div class="res-name">${t.name}</div>
@@ -624,12 +655,20 @@ function renderResult(code, res){
     </div>
   `;
 
-  // animate bars after paint
   const animBars = ()=>{
-    document.querySelectorAll(".bar-fill").forEach(el=>{ el.style.width = el.dataset.w + "%"; });
+    document.querySelectorAll(".bar-fill").forEach((el, i)=>{
+      if(reducedMotion()) el.style.width = el.dataset.w + "%";
+      else setTimeout(()=>{ el.style.width = el.dataset.w + "%"; }, 80 + i * 90);
+    });
   };
-  if(reducedMotion()) animBars();
-  else requestAnimationFrame(()=>requestAnimationFrame(animBars));
+  requestAnimationFrame(()=>requestAnimationFrame(animBars));
+
+  if(!reducedMotion()){
+    const card = document.querySelector(".res-card.is-revealing");
+    if(card){
+      setTimeout(()=>card.classList.add("is-revealed"), 40);
+    }
+  }
 }
 
 /* ----- gallery + cast ----- */
@@ -639,7 +678,7 @@ function renderGallery(){
     const cards = g.codes.map(code=>{
       const t=TYPES[code];
       return `<button class="tcard" type="button" onclick="showTypePreview('${code}')" aria-label="${JOBS[code]} ${code}">
-        <div class="avatar" role="img" aria-hidden="true">${avatarHTML(code)}</div>
+        <div class="avatar" role="img" aria-hidden="true">${avatarHTML(code, { svgOnly: true })}</div>
         <div class="tjob">${JOBS[code]}</div>
         <div class="tcode">${code}</div>
       </button>`;
@@ -680,7 +719,7 @@ function initCast(){
   if(row) row.innerHTML = ORDER.map(c=>{
     const g = groupOf(c);
     return `<button class="cast-avatar" type="button" style="--gc:${g.color}" onclick="openGallery()" aria-label="${JOBS[c]} ${c}">
-      <span class="avatar" aria-hidden="true">${avatarHTML(c)}</span>
+      <span class="avatar" aria-hidden="true">${avatarHTML(c, { svgOnly: true })}</span>
     </button>`;
   }).join("");
 }
