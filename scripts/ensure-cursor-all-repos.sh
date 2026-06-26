@@ -22,16 +22,23 @@ print_all_repos_guide() {
   All repositories に表示して常に開けるようにする手順
 ============================================================
 
-■ 1. GitHub で Cursor App を「All repositories」にする
+■ スクショの見方
+  - Recent に「girinoguchi/syokugyo ✓」があれば、それがテレキャリアエンジンです
+  - All Repositories に3件しかない = GitHub の Cursor App が
+    「Only select repositories」になっています
 
-  スマホ / PC どちらでも:
+■ 1. GitHub で All repositories にする（これが未完了です）
+
+  スマホのブラウザで:
   https://github.com/settings/installations
 
-  → 「Cursor」の右の Configure をタップ
+  → 「Cursor」をタップ
+  → 「Configure」をタップ
   → Repository access で「All repositories」を選ぶ
-  → Save
+     ※「Only select repositories」になっていたら切り替え
+  → Save / Update
 
-■ 2. Cursor ダッシュボードで GitHub を再接続
+■ 2. Cursor ダッシュボードで再接続
 
   https://cursor.com/dashboard?tab=integrations
 

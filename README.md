@@ -2,40 +2,38 @@
 
 エンタメ業界専門求人サービス **「エンジン」**（運営: テレキャリア / 株式会社フォーミュレーションI.T.S.）のリポジトリです。
 
-GitHub名: `girinoguchi/syokugyo`（旧名: `telecareer-engine`）  
+GitHub名: `girinoguchi/syokugyo`（表示名: テレキャリアエンジン / 旧名 `telecareer-engine`）  
 Cursorで選ぶときは検索欄に **`syokugyo`** と入力してください。
+
+> **スクショで Recent に `girinoguchi/syokugyo` ✓ が付いていれば、それがこのプロジェクトです。**  
+> `telecareer-engine` という名前のリポジトリは GitHub 上では `syokugyo` に統合されています。  
+> 「All Repositories」に3件しか出ない場合は、下記の GitHub 設定がまだ「選択したリポジトリのみ」です。
 
 ### Cursor で常に開けるようにする（All repositories）
 
-`syokugyo` を Cursor のリポジトリ一覧に **常時表示** するには、GitHub と Cursor の両方で **All repositories（すべてのリポジトリ）** を選ぶ必要があります。
+`syokugyo` を Cursor の **All Repositories 一覧** に常時表示するには、GitHub と Cursor の **両方** で All repositories を選ぶ必要があります。
 
-#### スマホで設定（3分）
+#### スマホで GitHub を All repositories にする（最重要）
 
-1. **GitHub** — https://github.com/settings/installations  
-   → **Cursor** → **Configure** → **All repositories** → **Save**
+1. ブラウザで開く: **https://github.com/settings/installations**
+2. 一覧から **Cursor** をタップ
+3. 右上または下部の **Configure** をタップ
+4. **Repository access** で **All repositories** を選ぶ（「Only select repositories」ではない）
+5. **Save** / **Update** をタップ
 
-2. **Cursor** — https://cursor.com/dashboard?tab=integrations  
-   → GitHub **Disconnect** → **Connect** → **All repositories**
+#### スマホで Cursor を再接続
 
-3. **開く** — https://cursor.com/agents  
-   → 新規 Agent → 検索: **`syokugyo`**
+1. **https://cursor.com/dashboard?tab=integrations**
+2. GitHub → **Disconnect** → 数秒待つ → **Connect**
+3. GitHub 画面でも **All repositories** を選択
 
-手順の全文: `npm run ensure:cursor:guide`
+#### 開く
 
-#### Mac/PC で自動設定
+1. **https://cursor.com/agents**
+2. リポジトリ選択 → 検索: **`syokugyo`**
+3. または **Recent** の `girinoguch/syokugyo` ✓ をそのまま選択して開始
 
-```bash
-gh auth login
-npm run ensure:cursor:all
-```
-
-実行後、手順 2 の Cursor 再接続を行ってください。
-
-### Cursor でこのリポジトリを選ぶ（スマホ開発）
-
-**スマホだけで開発する場合**は [cursor.com/agents](https://cursor.com/agents) を Safari / Chrome で開き、ホーム画面に追加するとアプリのように使えます。
-
-リポジトリ一覧に出ない場合、**リポジトリ名が `syokugyo` に変更されている**ことと、**All repositories になっていない**ことが原因のことが多いです。
+All repositories 設定後は、一覧にあなたの全リポジトリが表示されます。
 
 #### 手順 1（最重要）— Cursor ダッシュボードから接続
 
