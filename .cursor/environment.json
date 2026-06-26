@@ -1,3 +1,10 @@
 {
-  "install": "echo 'Career Type Finder plugin — local: docker compose up -d'"
+  "install": "docker compose pull",
+  "start": "sudo service docker start 2>/dev/null || true; docker compose up -d",
+  "terminals": [
+    {
+      "name": "wordpress",
+      "command": "docker compose logs -f wordpress"
+    }
+  ]
 }
