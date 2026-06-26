@@ -249,8 +249,36 @@ const IMAGES = {
   // "PLOD": "https://example.com/PLOD.png",
   // "PLOS": "https://example.com/PLOS.png",
 };
+function typeImageUrl(code){
+  if(IMAGES[code]) return IMAGES[code];
+  const base = (window.CTF && CTF.typeImgBase) ? CTF.typeImgBase : "";
+  return base ? base + "mbti-" + code + ".png" : "";
+}
+
+function loadTypeImage(code){
+  const url = typeImageUrl(code);
+  if(!url) return Promise.reject();
+  return new Promise((resolve, reject)=>{
+    const img = new Image();
+    img.decoding = "async";
+    img.onload = ()=>resolve(img);
+    img.onerror = reject;
+    img.src = url;
+  });
+}
+
+function canvasRoundRect(ctx, x, y, w, h, r){
+  const rr = Math.min(r, w / 2, h / 2);
+  ctx.beginPath();
+  ctx.moveTo(x + rr, y);
+  ctx.arcTo(x + w, y, x + w, y + h, rr);
+  ctx.arcTo(x + w, y + h, x, y + h, rr);
+  ctx.arcTo(x, y + h, x, y, rr);
+  ctx.arcTo(x, y, x + w, y, rr);
+  ctx.closePath();
+}
+
 function avatarHTML(code, opts){
-  opts = opts || {};
   if(opts.svgOnly) return AVATARS[code] || "";
   const base = (window.CTF && CTF.typeImgBase) ? CTF.typeImgBase : "";
   const u = IMAGES[code] || (base ? base + "mbti-" + code + ".png" : "");
@@ -333,6 +361,7 @@ function ctfResetApp(){
   idx = 0;
   answers.fill(null);
   updateProgress();
+  setAppMode("intro");
   show("intro");
 }
 
@@ -411,7 +440,21 @@ function updateProgress(){
   updateQuizAmbient();
 }
 
-function renderQ(){
+function slideQuestion(dir, cb){
+  const card = $("qcard");
+  if(!card || reducedMotion()){
+    cb();
+    return;
+  }
+  card.classList.remove("is-from-right","is-from-left","is-enter");
+  card.classList.add(dir > 0 ? "is-exit-left" : "is-exit-right");
+  setTimeout(()=>{
+    card.classList.remove("is-exit-left","is-exit-right");
+    cb();
+  }, 220);
+}
+
+function renderQ(dir){
   const q = QUESTIONS[idx];
   $("qnum").textContent = idx + 1;
   updateProgress();
@@ -420,9 +463,14 @@ function renderQ(){
 
   const card = $("qcard");
   if(card && !reducedMotion()){
-    card.classList.remove("is-enter");
-    void card.offsetWidth;
-    card.classList.add("is-enter");
+    card.classList.remove("is-enter","is-from-right","is-from-left","is-exit-left","is-exit-right");
+    if(dir){
+      void card.offsetWidth;
+      card.classList.add(dir > 0 ? "is-from-right" : "is-from-left");
+    } else {
+      void card.offsetWidth;
+      card.classList.add("is-enter");
+    }
   }
 
   const box = $("dots");
@@ -446,21 +494,37 @@ function renderQ(){
   if(qtext) qtext.focus({ preventScroll: true });
 }
 
+function updateDotsOnly(){
+  const box = $("dots");
+  if(!box) return;
+  box.querySelectorAll(".dot").forEach((b, i)=>{
+    const on = answers[idx] === SCALE[i].v;
+    b.classList.toggle("is-on", on);
+    b.setAttribute("aria-checked", on ? "true" : "false");
+    b.tabIndex = on ? 0 : -1;
+  });
+}
+
 function choose(v, el){
   answers[idx] = v;
   if(el && !reducedMotion()){
     el.classList.add("is-pulse");
     setTimeout(()=>el.classList.remove("is-pulse"), 280);
   }
-  renderQ();
+  updateDotsOnly();
   const delay = reducedMotion() ? 0 : 260;
   setTimeout(()=>{
-    if(idx < QUESTIONS.length - 1){ idx++; renderQ(); }
-    else finish();
+    if(idx < QUESTIONS.length - 1){
+      slideQuestion(1, ()=>{ idx++; renderQ(1); });
+    } else finish();
   }, delay);
 }
 
-function back(){ if(idx>0){ idx--; renderQ(); } }
+function back(){
+  if(idx > 0){
+    slideQuestion(-1, ()=>{ idx--; renderQ(-1); });
+  }
+}
 
 function onQuizKey(e){
   const quiz = $("quiz");
@@ -531,67 +595,7 @@ function shareCopy(){
   }
 }
 
-function shareDownloadImage(){
-  const canvas = document.createElement("canvas");
-  const w = 1080, h = 1350;
-  canvas.width = w;
-  canvas.height = h;
-  const ctx = canvas.getContext("2d");
-  if(!ctx || !ctfCode) return;
-
-  const g = groupOf(ctfCode);
-  const ch = CHARS[ctfCode];
-  const t = TYPES[ctfCode];
-  const font = '"Hiragino Sans","Noto Sans JP","Yu Gothic",system-ui,sans-serif';
-
-  const bg = g ? g.bg : "#EFF2F8";
-  const accent = g ? g.color : "#FF6B5B";
-  const dark = g ? g.dark : "#16243F";
-
-  ctx.fillStyle = bg;
-  ctx.fillRect(0, 0, w, h);
-  const grad = ctx.createRadialGradient(w * 0.5, h * 0.2, 0, w * 0.5, h * 0.2, w * 0.7);
-  grad.addColorStop(0, accent + "33");
-  grad.addColorStop(1, "transparent");
-  ctx.fillStyle = grad;
-  ctx.fillRect(0, 0, w, h);
-
-  ctx.fillStyle = dark;
-  ctx.font = `600 28px ${font}`;
-  ctx.textAlign = "center";
-  ctx.fillText("キャリア・タイプ診断", w / 2, 100);
-
-  ctx.font = `800 120px ui-monospace,Menlo,monospace`;
-  ctx.fillStyle = accent;
-  ctx.fillText(ctfCode, w / 2, 280);
-
-  ctx.font = `800 52px ${font}`;
-  ctx.fillStyle = dark;
-  ctx.fillText(ctfJob, w / 2, 380);
-
-  if(g){
-    ctx.font = `700 32px ${font}`;
-    ctx.fillStyle = accent;
-    ctx.fillText(g.emoji + " " + g.name, w / 2, 460);
-  }
-
-  if(ch){
-    ctx.font = `700 36px ${font}`;
-    ctx.fillStyle = "#FF6B5B";
-    const cry = "“" + ch.cry + "”";
-    wrapCanvasText(ctx, cry, w / 2, 560, w - 120, 48);
-  }
-
-  if(t){
-    ctx.font = `600 30px ${font}`;
-    ctx.fillStyle = "#5A6B85";
-    wrapCanvasText(ctx, t.name, w / 2, 700, w - 120, 42);
-  }
-
-  ctx.font = `500 24px ${font}`;
-  ctx.fillStyle = "#94A2BB";
-  ctx.fillText("職業タイプ診断 · 16 types", w / 2, h - 80);
-
+function downloadCanvasPng(canvas){
   canvas.toBlob(blob=>{
     if(!blob) return;
     const a = document.createElement("a");
@@ -602,6 +606,102 @@ function shareDownloadImage(){
     const el = $("shareMsg");
     if(el){ el.textContent = "画像を保存しました"; setTimeout(()=>{ el.textContent=""; }, 2500); }
   }, "image/png");
+}
+
+function drawShareCanvas(ctx, w, h, data){
+  const { g, ch, t, code, job, img } = data;
+  const font = '"Hiragino Sans","Noto Sans JP","Yu Gothic",system-ui,sans-serif';
+  const bg = g ? g.bg : "#EFF2F8";
+  const accent = g ? g.color : "#FF6B5B";
+  const dark = g ? g.dark : "#16243F";
+
+  ctx.fillStyle = bg;
+  ctx.fillRect(0, 0, w, h);
+  const grad = ctx.createRadialGradient(w * 0.5, h * 0.15, 0, w * 0.5, h * 0.15, w * 0.75);
+  grad.addColorStop(0, accent + "40");
+  grad.addColorStop(1, "transparent");
+  ctx.fillStyle = grad;
+  ctx.fillRect(0, 0, w, h);
+
+  ctx.fillStyle = dark;
+  ctx.font = `600 28px ${font}`;
+  ctx.textAlign = "center";
+  ctx.fillText("キャリア・タイプ診断", w / 2, 96);
+
+  ctx.font = `800 108px ui-monospace,Menlo,monospace`;
+  ctx.fillStyle = accent;
+  ctx.fillText(code, w / 2, 210);
+
+  ctx.font = `800 48px ${font}`;
+  ctx.fillStyle = dark;
+  ctx.fillText(job, w / 2, 290);
+
+  let textY = 360;
+  if(img){
+    const iw = 560, ih = 374;
+    const ix = (w - iw) / 2, iy = 330;
+    ctx.save();
+    canvasRoundRect(ctx, ix, iy, iw, ih, 28);
+    ctx.clip();
+    ctx.drawImage(img, ix, iy, iw, ih);
+    ctx.restore();
+    ctx.strokeStyle = accent + "55";
+    ctx.lineWidth = 4;
+    canvasRoundRect(ctx, ix, iy, iw, ih, 28);
+    ctx.stroke();
+    textY = iy + ih + 56;
+  }
+
+  if(g){
+    ctx.font = `700 30px ${font}`;
+    ctx.fillStyle = accent;
+    ctx.fillText(g.emoji + " " + g.name, w / 2, textY);
+    textY += 52;
+  }
+
+  if(ch){
+    ctx.font = `700 34px ${font}`;
+    ctx.fillStyle = "#FF6B5B";
+    const cry = "“" + ch.cry + "”";
+    wrapCanvasText(ctx, cry, w / 2, textY + 20, w - 120, 46);
+    textY += 100;
+  }
+
+  if(t){
+    ctx.font = `600 28px ${font}`;
+    ctx.fillStyle = "#5A6B85";
+    wrapCanvasText(ctx, t.name, w / 2, textY + 20, w - 120, 40);
+  }
+
+  ctx.font = `500 24px ${font}`;
+  ctx.fillStyle = "#94A2BB";
+  ctx.fillText("職業タイプ診断 · 16 types", w / 2, h - 72);
+}
+
+async function shareDownloadImage(){
+  if(!ctfCode) return;
+  const btn = document.querySelector(".share-btn--img");
+  if(btn){ btn.disabled = true; btn.textContent = "生成中…"; }
+
+  const canvas = document.createElement("canvas");
+  const w = 1080, h = 1350;
+  canvas.width = w;
+  canvas.height = h;
+  const ctx = canvas.getContext("2d");
+  if(!ctx) return;
+
+  const g = groupOf(ctfCode);
+  const ch = CHARS[ctfCode];
+  const t = TYPES[ctfCode];
+  let img = null;
+  try { img = await loadTypeImage(ctfCode); } catch(e){ /* SVG fallback only in preview */ }
+
+  drawShareCanvas(ctx, w, h, {
+    g, ch, t, code: ctfCode, job: ctfJob, img
+  });
+  downloadCanvasPng(canvas);
+
+  if(btn){ btn.disabled = false; btn.textContent = "画像を保存"; }
 }
 
 function wrapCanvasText(ctx, text, x, y, maxWidth, lineHeight){
@@ -743,6 +843,7 @@ function renderResult(code, res){
         <div class="share-card__brand">キャリア・タイプ診断</div>
         <div class="share-card__code">${code}</div>
         <div class="share-card__job">${job}</div>
+        <div class="share-card__avatar">${avatarHTML(code, { large: true, eager: true })}</div>
         <div class="share-card__group">${g.emoji} ${g.name}</div>
         <p class="share-card__cry">“${ch.cry}”</p>
         <div class="share-card__name">${t.name}</div>
@@ -814,6 +915,12 @@ function renderGallery(){
       ${quad}
     </div>
     <div class="res-foot"><button class="btn" type="button" onclick="start()">診断をはじめる</button></div>`;
+  if(!reducedMotion()){
+    document.querySelectorAll(".tcard").forEach((el, i)=>{
+      el.classList.add("tcard--pop");
+      el.style.animationDelay = (i * 0.045) + "s";
+    });
+  }
 }
 
 function showTypePreview(code){
