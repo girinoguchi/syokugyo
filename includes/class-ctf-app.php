@@ -23,6 +23,7 @@ class CTF_App {
 	public function __construct() {
 		add_shortcode( self::SHORTCODE, array( $this, 'render' ) );
 		add_action( 'wp_enqueue_scripts', array( $this, 'register_assets' ) );
+		add_action( 'wp_footer', array( $this, 'maybe_render_global_launcher' ), 20 );
 		add_filter( 'theme_page_templates', array( $this, 'register_page_template' ) );
 		add_filter( 'template_include', array( $this, 'load_page_template' ) );
 	}
@@ -130,12 +131,35 @@ class CTF_App {
 		return $url;
 	}
 
-	public function render( $atts ) {
-		if ( $this->rendered ) {
-			return '';
+	/**
+	 * 全サイト共通のフローティング起動ボタンを表示するか。
+	 *
+	 * @return bool
+	 */
+	public function should_show_global_launcher() {
+		if ( is_admin() || wp_doing_ajax() || wp_is_json_request() ) {
+			return false;
 		}
-		$this->rendered = true;
 
+		if ( ! apply_filters( 'ctf_global_launcher_enabled', true ) ) {
+			return false;
+		}
+
+		if ( $this->rendered ) {
+			return false;
+		}
+
+		if ( is_page() && self::PAGE_TEMPLATE === get_page_template_slug() ) {
+			return false;
+		}
+
+		return true;
+	}
+
+	/**
+	 * アセット読み込みと CTF グローバル変数の設定。
+	 */
+	private function enqueue_app_assets() {
 		wp_enqueue_style( 'ctf-app' );
 		wp_enqueue_script( 'ctf-app' );
 
@@ -158,7 +182,14 @@ class CTF_App {
 				'typeImgBase' => $type_img_base,
 			)
 		);
+	}
 
+	/**
+	 * 診断アプリの HTML。
+	 *
+	 * @return string
+	 */
+	private function get_app_markup() {
 		$template = CTF_PLUGIN_DIR . 'templates/mbti-app.php';
 		if ( ! file_exists( $template ) ) {
 			return '';
@@ -167,5 +198,39 @@ class CTF_App {
 		ob_start();
 		include $template;
 		return (string) ob_get_clean();
+	}
+
+	public function render( $atts ) {
+		if ( $this->rendered ) {
+			return '';
+		}
+		$this->rendered = true;
+
+		$this->enqueue_app_assets();
+		return $this->get_app_markup();
+	}
+
+	/**
+	 * 全ページにフローティング起動ボタンとモーダルを出力。
+	 */
+	public function maybe_render_global_launcher() {
+		if ( ! $this->should_show_global_launcher() ) {
+			return;
+		}
+
+		$this->rendered = true;
+		$this->enqueue_app_assets();
+
+		$template = CTF_PLUGIN_DIR . 'templates/mbti-launcher.php';
+		if ( ! file_exists( $template ) ) {
+			return;
+		}
+
+		$app_markup = $this->get_app_markup();
+		if ( '' === $app_markup ) {
+			return;
+		}
+
+		include $template;
 	}
 }

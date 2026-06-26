@@ -319,6 +319,51 @@ function ctfSubmitLead(ev){
 const $ = id => document.getElementById(id);
 const reducedMotion = () => window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
+function ctfScrollAppToTop(){
+  const body = document.querySelector(".ctf-modal__body");
+  const behavior = reducedMotion() ? "auto" : "smooth";
+  if(body) body.scrollTo({top:0, behavior});
+  else window.scrollTo({top:0, behavior});
+}
+
+function ctfResetApp(){
+  idx = 0;
+  answers.fill(null);
+  const bar = $("bar");
+  if(bar) bar.style.width = "0%";
+  show("intro");
+}
+
+function ctfOpenModal(){
+  const modal = $("ctfModal");
+  const fab = $("ctfFab");
+  if(!modal) return;
+  ctfResetApp();
+  modal.hidden = false;
+  modal.setAttribute("aria-hidden", "false");
+  document.body.classList.add("ctf-modal-open");
+  if(fab) fab.setAttribute("aria-expanded", "true");
+  const closeBtn = modal.querySelector(".ctf-modal__close");
+  if(closeBtn) closeBtn.focus();
+}
+
+function ctfCloseModal(){
+  const modal = $("ctfModal");
+  const fab = $("ctfFab");
+  if(!modal || modal.hidden) return;
+  modal.hidden = true;
+  modal.setAttribute("aria-hidden", "true");
+  document.body.classList.remove("ctf-modal-open");
+  if(fab){
+    fab.setAttribute("aria-expanded", "false");
+    fab.focus();
+  }
+}
+
+document.addEventListener("keydown", e=>{
+  if(e.key === "Escape") ctfCloseModal();
+});
+
 function show(stageId){
   const current = document.querySelector(".stage.is-active");
   const next = $(stageId);
@@ -326,7 +371,7 @@ function show(stageId){
   const go = ()=>{
     document.querySelectorAll(".stage").forEach(s=>s.classList.remove("is-active","is-leaving"));
     next.classList.add("is-active");
-    window.scrollTo({top:0,behavior: reducedMotion() ? "auto" : "smooth"});
+    ctfScrollAppToTop();
   };
   if(current && !reducedMotion()){
     current.classList.add("is-leaving");
