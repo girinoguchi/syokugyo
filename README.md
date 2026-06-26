@@ -5,25 +5,54 @@
 GitHub名: `girinoguchi/telecareer-engine`  
 Cursorで選ぶときは検索欄に **`telecareer`** と入力してください（日本語名「テレキャリアエンジン」では出ません）。
 
-### Cursor でこのリポジトリを選ぶ
+### Cursor でこのリポジトリを選ぶ（スマホ開発）
 
-Cursor のリポジトリ一覧に `telecareer-engine` が出ない場合、**GitHub 側で Cursor アプリへのアクセス許可**が必要です。
+**スマホだけで開発する場合**は [cursor.com/agents](https://cursor.com/agents) を Safari / Chrome で開き、ホーム画面に追加するとアプリのように使えます。
 
-**手順（スマホでも可）**
+リポジトリ一覧に `telecareer-engine` が出ない場合、**GitHub 側だけで Cursor App を入れても Cursor 本体と同期されない**ことが多いです。次の順番で試してください。
 
-1. https://github.com/apps/cursor/installations/new を開く
-2. アカウント `girinoguchi` を選び、**Repository access** で `telecareer-engine` を追加（または **All repositories**）
-3. https://cursor.com/dashboard/integrations を開き、GitHub を **Disconnect → Connect** で再接続
-4. Cloud Agent やリポジトリ選択画面で **`telecareer`** と検索
+#### 手順 1（最重要）— Cursor ダッシュボードから接続
 
-**Mac/PC がある場合（自動設定）**
+1. https://cursor.com/dashboard?tab=integrations を開く
+2. GitHub → **Disconnect** → 数秒待つ → **Connect**
+3. GitHub ログインで **`girinoguchi`** を選ぶ
+4. **Repository access** で **All repositories**（または `telecareer-engine` にチェック）
+5. https://cursor.com/agents → 新規 Agent → 検索欄に **`telecareer`**（英語・小文字）
+
+「テレキャリア」「エンジン」では出ません。
+
+#### 手順 2 — それでも出ない場合
+
+1. https://github.com/settings/installations → **Cursor** → **Uninstall**
+2. 2〜3 分待つ
+3. 手順 1 をやり直す（**必ず Cursor ダッシュボードの Connect から**）
+
+#### 手順 3 — リポジトリ選択なしで Agent を動かす
+
+GitHub アプリで `girinoguchi/telecareer-engine` の Pull Request を開き、コメントで **`@cursor`** と指示を書く。一覧に出なくても動くことがあります。
+
+#### 手順 4 — 最終手段（既知不具合の回避）
+
+一度 Cursor App を入れ直したリポジトリは一覧に出ない不具合があります。Mac/PC で:
 
 ```bash
-gh auth login   # 未ログインの場合
-npm run setup:cursor
+npm run fix:cursor:fresh
 ```
 
-その後、手順 3 の Cursor 連携の再接続を行ってください。
+新規リポジトリ `telecareer-engine-cloud` が作られます。Cursor では **`telecareer-cloud`** と検索してください。
+
+#### 手順の全文（スマホ向け）
+
+```bash
+npm run fix:cursor:guide
+```
+
+**Mac/PC がある場合（自動診断・修復）**
+
+```bash
+gh auth login
+npm run fix:cursor
+```
 
 エンタメ業界で働きたい人（求職者）と、エンタメ求人をつなぐマッチングサービスです。求職者はエキストラ・音響・照明・制作などのエンタメ特化求人を検索・応募でき、管理者は求人の登録・管理と応募の確認ができます。
 
@@ -39,7 +68,7 @@ npm run setup:cursor
 ### 1. リポジトリのクローンと依存関係
 
 ```bash
-cd テレキャリア人材マッチング
+cd telecareer-engine
 npm install
 ```
 
