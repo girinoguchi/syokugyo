@@ -54,7 +54,7 @@ const SCALE = [
   {v: 3, side:"agree",  size:54, label:"とても当てはまる"},
   {v: 2, side:"agree",  size:42, label:"当てはまる"},
   {v: 1, side:"agree",  size:32, label:"やや当てはまる"},
-  {v: 0, side:"neutral",size:26, label:"どちらでもない"},
+  {v: 0, side:"neutral",size:28, label:"どちらでもない"},
   {v:-1, side:"disagree",size:32,label:"やや当てはまらない"},
   {v:-2, side:"disagree",size:42,label:"当てはまらない"},
   {v:-3, side:"disagree",size:54,label:"まったく当てはまらない"},
@@ -272,6 +272,7 @@ const answers = new Array(QUESTIONS.length).fill(null); // store chosen scale va
 window.CTF = window.CTF || { restUrl:"", nonce:"", resumeUrl:"/" };
 let ctfCode = "";       // 現在の結果コード（例: PLOD）
 let ctfTypeName = "";   // 現在の結果タイプ名
+let ctfJob = "";        // 現在の職種ラベル
 
 function ctfSubmitLead(ev){
   ev.preventDefault();
@@ -316,10 +317,21 @@ function ctfSubmitLead(ev){
 }
 
 const $ = id => document.getElementById(id);
+const reducedMotion = () => window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
 function show(stageId){
-  document.querySelectorAll(".stage").forEach(s=>s.classList.remove("is-active"));
-  $(stageId).classList.add("is-active");
-  window.scrollTo({top:0,behavior:"smooth"});
+  const current = document.querySelector(".stage.is-active");
+  const next = $(stageId);
+  if(!next || current === next) return;
+  const go = ()=>{
+    document.querySelectorAll(".stage").forEach(s=>s.classList.remove("is-active","is-leaving"));
+    next.classList.add("is-active");
+    window.scrollTo({top:0,behavior: reducedMotion() ? "auto" : "smooth"});
+  };
+  if(current && !reducedMotion()){
+    current.classList.add("is-leaving");
+    setTimeout(go, 220);
+  } else go();
 }
 
 function start(){ idx=0; answers.fill(null); show("quiz"); renderQ(); }
@@ -328,20 +340,29 @@ function renderQ(){
   const q = QUESTIONS[idx];
   $("qnum").textContent = idx+1;
   $("bar").style.width = ((idx)/QUESTIONS.length*100) + "%";
-  $("qaxis").textContent = AXES[q.axis].nm;
   $("qtext").textContent = q.t;
   $("back").disabled = idx===0;
+
+  const card = $("qcard");
+  if(card && !reducedMotion()){
+    card.classList.remove("is-enter");
+    void card.offsetWidth;
+    card.classList.add("is-enter");
+  }
 
   const box = $("dots");
   box.innerHTML = "";
   SCALE.forEach((s,i)=>{
     const b = document.createElement("button");
+    b.type = "button";
     b.className = "dot" + (answers[idx]===s.v ? " is-on" : "");
     b.style.width = b.style.height = s.size+"px";
     b.style.setProperty("--c", dotColor(s.side));
     b.setAttribute("role","radio");
     b.setAttribute("aria-checked", answers[idx]===s.v ? "true":"false");
     b.setAttribute("aria-label", s.label);
+    b.tabIndex = answers[idx]===s.v ? 0 : -1;
+    b.dataset.idx = i;
     b.onclick = ()=>choose(s.v);
     box.appendChild(b);
   });
@@ -349,15 +370,30 @@ function renderQ(){
 
 function choose(v){
   answers[idx] = v;
-  // reflect selection, then advance
   renderQ();
+  const delay = reducedMotion() ? 0 : 230;
   setTimeout(()=>{
     if(idx < QUESTIONS.length-1){ idx++; renderQ(); }
     else finish();
-  }, 230);
+  }, delay);
 }
 
 function back(){ if(idx>0){ idx--; renderQ(); } }
+
+function onQuizKey(e){
+  const quiz = $("quiz");
+  if(!quiz || !quiz.classList.contains("is-active")) return;
+  const t = e.target;
+  if(t && (t.tagName==="INPUT" || t.tagName==="TEXTAREA" || t.isContentEditable)) return;
+  if(e.key>="1" && e.key<="7"){
+    e.preventDefault();
+    choose(SCALE[parseInt(e.key,10)-1].v);
+  } else if(e.key==="ArrowLeft"){
+    e.preventDefault();
+    back();
+  }
+}
+document.addEventListener("keydown", onQuizKey);
 
 /* ----- scoring ----- */
 function score(){
@@ -378,10 +414,31 @@ function score(){
 }
 
 function finish(){
+  $("bar").style.width = "100%";
   const res = score();
   const code = res.map(r=>r.key).join("");
   renderResult(code, res);
   show("result");
+}
+
+function shareText(code, job, name){
+  return `私の仕事タイプは「${job}」（${code}・${name}）でした！`;
+}
+
+function shareX(){
+  const text = encodeURIComponent(shareText(ctfCode, ctfJob, ctfTypeName));
+  const url = encodeURIComponent(location.href.split("#")[0]);
+  window.open(`https://twitter.com/intent/tweet?text=${text}&url=${url}`, "_blank", "noopener,noreferrer");
+}
+
+function shareCopy(){
+  const msg = shareText(ctfCode, ctfJob, ctfTypeName) + "\n" + location.href.split("#")[0];
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(msg).then(()=>{
+      const el = $("shareMsg");
+      if(el){ el.textContent = "リンクをコピーしました"; setTimeout(()=>{ el.textContent=""; }, 2500); }
+    });
+  }
 }
 
 /* ----- render result ----- */
@@ -394,21 +451,23 @@ function renderResult(code, res){
 
   ctfCode = code;
   ctfTypeName = t.name;
+  ctfJob = job;
 
   const bars = res.map(r=>{
     const win = r.winner==="p1" ? r.ax.p1 : r.ax.p2;
     const lose = r.winner==="p1" ? r.ax.p2 : r.ax.p1;
-    const color = r.winner==="p1" ? "teal" : "violet";
+    const color = r.winner==="p1" ? "agree" : "disagree";
     const from = r.winner==="p1" ? "from-l" : "from-r";
+    const winShort = win.label.split(" ")[0];
+    const loseShort = lose.label.split(" ")[0];
     return `
       <div class="bar">
-        <div class="axis-nm">${r.ax.nm}</div>
         <div class="bar-top">
-          <span class="${r.winner==='p1'?'win':'lose'}">${r.ax.p1.label}</span>
-          <span class="bar-pct" style="color:var(--${color})">${r.strength}% ${win.label.split(' ')[0]}</span>
-          <span class="${r.winner==='p2'?'win':'lose'}">${r.ax.p2.label}</span>
+          <span class="${r.winner==='p1'?'win':'lose'}">${winShort}</span>
+          <span class="bar-pct bar-pct--${color}">${winShort} ${r.strength}%</span>
+          <span class="${r.winner==='p2'?'win':'lose'}">${loseShort}</span>
         </div>
-        <div class="bar-track"><i class="bar-fill ${color} ${from}" data-w="${r.strength}" style="width:0"></i></div>
+        <div class="bar-track"><i class="bar-fill ${color} ${from}" data-w="${r.strength}" style="width:0" role="presentation"></i></div>
       </div>`;
   }).join("");
 
@@ -423,15 +482,16 @@ function renderResult(code, res){
 
   $("result").innerHTML = `
     <div class="card">
-      <div class="res-head" style="--gc:${g.color};--gbg:${g.bg}">
+      <div class="res-head" style="--gc:${g.color};--gbg:${g.bg};--gd:${g.dark}">
+        <div class="res-code" aria-label="タイプコード ${code}">${coded}</div>
+        <div class="res-job">${job}</div>
         <div class="avatar avatar--lg" role="img" aria-label="${ch.role}">${avatarHTML(code)}</div>
         <div class="res-group">${g.emoji} ${g.name}<small>${g.axis}</small></div>
-        <div class="res-job">${job}</div>
-        <div class="res-name">${t.name}<span class="res-codeS">${coded}</span></div>
+        <p class="res-cry">“${ch.cry}”</p>
+        <div class="res-name">${t.name}</div>
         <div class="res-nick">${ch.role}（通称「${ch.title}」）</div>
         ${pr.catch ? `<p class="res-catch">${pr.catch}</p>` : ``}
-        <p class="res-cry">“${ch.cry}”</p>
-        <p class="res-char">${ch.char}${t.essence}</p>
+        <p class="res-char">${ch.char} ${t.essence}</p>
         <div class="riasec">適性領域 ／ ${t.riasec}</div>
       </div>
 
@@ -500,43 +560,51 @@ function renderResult(code, res){
       </div>
     </div>
 
+    <div class="res-share">
+      <span class="res-share-lbl">結果をシェア</span>
+      <div class="res-share-btns">
+        <button class="share-btn share-btn--x" type="button" onclick="shareX()">X でシェア</button>
+        <button class="share-btn share-btn--copy" type="button" onclick="shareCopy()">リンクをコピー</button>
+      </div>
+      <p class="share-msg" id="shareMsg" role="status" aria-live="polite"></p>
+    </div>
+
     <div class="disclaimer">
       この診断は、あなたの傾向を言葉にして<b>自己理解とキャリアの仮説づくりを助ける</b>ためのものです。能力や将来を断定するものではありません。気になる職業があれば、ぜひ一次情報や実際の体験で確かめてみてください。
     </div>
 
     <div class="res-foot">
-      <button class="btn" onclick="start()">もう一度診断する</button>
-      <button class="btn--ghost" onclick="openGallery()">16タイプ図鑑</button>
+      <button class="btn" type="button" onclick="start()">もう一度診断する</button>
+      <button class="btn--ghost" type="button" onclick="openGallery()">16タイプ図鑑</button>
     </div>
   `;
 
   // animate bars after paint
-  requestAnimationFrame(()=>requestAnimationFrame(()=>{
+  const animBars = ()=>{
     document.querySelectorAll(".bar-fill").forEach(el=>{ el.style.width = el.dataset.w + "%"; });
-  }));
+  };
+  if(reducedMotion()) animBars();
+  else requestAnimationFrame(()=>requestAnimationFrame(animBars));
 }
 
 /* ----- gallery + cast ----- */
 function openGallery(){ renderGallery(); show("gallery"); }
 function renderGallery(){
-  const groups = GROUPS.map(g=>{
+  const quad = GROUPS.map(g=>{
     const cards = g.codes.map(code=>{
       const t=TYPES[code];
-      const pr = PERSONA[code] || {};
-      return `<div class="tcard">
-        <div class="avatar" role="img" aria-label="${CHARS[code].role}">${avatarHTML(code)}</div>
+      return `<button class="tcard" type="button" onclick="showTypePreview('${code}')" aria-label="${JOBS[code]} ${code}">
+        <div class="avatar" role="img" aria-hidden="true">${avatarHTML(code)}</div>
         <div class="tjob">${JOBS[code]}</div>
-        <div class="tname">${t.name}</div>
-        ${pr.catch ? `<div class="tcatch">${pr.catch}</div>` : ``}
         <div class="tcode">${code}</div>
-      </div>`;
+      </button>`;
     }).join("");
-    return `<div class="gal-group" style="background:${g.bg}">
+    return `<div class="gal-group" style="--gc:${g.color};--gbg:${g.bg};--gd:${g.dark}">
       <div class="gal-gh">
         <span class="gal-dot" style="background:${g.color}"></span>
         <span class="gal-gname" style="color:${g.dark}">${g.emoji} ${g.name}</span>
-        <span class="gal-gaxis">${g.axis}</span>
       </div>
+      <p class="gal-gaxis">${g.axis}</p>
       <p class="gal-gdesc">${g.desc}</p>
       <div class="gal-grow">${cards}</div>
     </div>`;
@@ -544,14 +612,31 @@ function renderGallery(){
   document.getElementById("gallery").innerHTML = `
     <div class="gal-top">
       <div class="gal-h">16タイプ ｜ 4つの仕事カラー</div>
-      <button class="btn--ghost" onclick="show('intro')">← 戻る</button>
+      <button class="btn--ghost" type="button" onclick="show('intro')">← 戻る</button>
     </div>
     <p class="gal-sub">「関心（人／課題）」×「思考（論理／創造）」で4色に分かれ、各色の中で〈進め方〉と〈役割〉により4タイプに分かれます。</p>
-    ${groups}
-    <div class="res-foot"><button class="btn" onclick="start()">診断をはじめる</button></div>`;
+    <div class="gal-quad" aria-label="16タイプ図鑑 4象限">
+      ${quad}
+    </div>
+    <div class="res-foot"><button class="btn" type="button" onclick="start()">診断をはじめる</button></div>`;
+}
+
+function showTypePreview(code){
+  const fakeRes = code.split("").map((ch,i)=>{
+    const ax = AXES[i];
+    const isP1 = ax.p1.k === ch;
+    return {ax, winner:isP1?"p1":"p2", strength:62, key:ch};
+  });
+  renderResult(code, fakeRes);
+  show("result");
 }
 function initCast(){
   const row=document.getElementById("castRow");
-  if(row) row.innerHTML = ORDER.map(c=>`<div class="avatar" role="img" aria-label="${CHARS[c].role}" onclick="openGallery()">${avatarHTML(c)}</div>`).join("");
+  if(row) row.innerHTML = ORDER.map(c=>{
+    const g = groupOf(c);
+    return `<button class="cast-avatar" type="button" style="--gc:${g.color}" onclick="openGallery()" aria-label="${JOBS[c]} ${c}">
+      <span class="avatar" aria-hidden="true">${avatarHTML(c)}</span>
+    </button>`;
+  }).join("");
 }
 initCast();

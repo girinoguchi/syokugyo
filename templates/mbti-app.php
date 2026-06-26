@@ -4,9 +4,9 @@
   <!-- ===== INTRO ===== -->
   <section class="stage is-active" id="intro">
     <div class="hero">
-      <div class="eyebrow">Career Type Finder · 16 types</div>
+      <div class="eyebrow">キャリア・タイプ診断 · 16 types</div>
       <h1>32の質問でわかる、<br>あなたの<span class="hl">仕事タイプ</span>。</h1>
-      <p class="lead">回答をもとに、まず「関心（人／課題）× 思考（論理／創造）」で<b>4つの仕事カラー</b>に分類。さらにその中の16タイプとして、あなたに合う<b>具体的な職種</b>（営業・マーケ・事務・デザインなど）と強みを提示します。土台はキャリア心理学（Holland の RIASEC）です。</p>
+      <p class="lead">4つの軸・32問・約5分。回答から<b>4つの仕事カラー</b>に分類し、16タイプのうちあなたに合う<b>職種</b>と強みを提示します。直感で、深く考えすぎずに答えるほど正確に出ます。</p>
       <div class="meta-row">
         <div class="meta"><b>32</b><span>の質問</span></div>
         <div class="meta"><b>4</b><span>つの軸</span></div>
@@ -40,14 +40,14 @@
     </div>
 
     <div class="start-row">
-      <button class="btn" onclick="start()">診断をはじめる</button>
+      <button class="btn" type="button" onclick="start()">診断をはじめる</button>
       <span class="note">直感で、深く考えすぎずに答えるほど正確に出ます。</span>
     </div>
 
     <div class="cast">
       <div class="cast-lead">— 4つの仕事カラー × 16タイプ —</div>
       <div class="cast-row" id="castRow"></div>
-      <button class="cast-btn" onclick="openGallery()">タイプ図鑑をぜんぶ見る →</button>
+      <button class="cast-btn" type="button" onclick="openGallery()">タイプ図鑑をぜんぶ見る →</button>
     </div>
   </section>
 
@@ -57,16 +57,16 @@
       <div class="count">Q<em id="qnum">1</em> / 32</div>
       <div class="progress"><i id="bar"></i></div>
     </div>
-    <div class="card q-card">
-      <div class="q-axis" id="qaxis"></div>
-      <div class="q-text" id="qtext"></div>
+    <div class="card q-card" id="qcard">
+      <p class="q-text" id="qtext" aria-live="polite"></p>
       <div class="scale">
         <div class="scale-dots" id="dots" role="radiogroup" aria-label="この文は自分にどれくらい当てはまりますか"></div>
         <div class="scale-ends"><span class="agree">当てはまる</span><span class="disagree">当てはまらない</span></div>
+        <p class="scale-hint" aria-hidden="true">キーボード：1〜7で回答、←で戻る</p>
       </div>
     </div>
     <div class="q-foot">
-      <button class="back" id="back" onclick="back()" disabled>← ひとつ戻る</button>
+      <button class="back" id="back" type="button" onclick="back()" disabled aria-label="前の質問に戻る">← ひとつ戻る</button>
     </div>
   </section>
 
