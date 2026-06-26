@@ -36,8 +36,8 @@ print_mobile_guide() {
      → 数秒待ってから Connect をタップ
 
   3. GitHub ログイン画面で girinoguchi アカウントを選ぶ
-     → Repository access で「All repositories」
-        または telecareer-engine にチェック
+     → Repository access で必ず「All repositories」を選ぶ
+        （個別選択だと telecareer-engine が漏れることがあります）
 
   4. Cloud Agent を開く
      https://cursor.com/agents

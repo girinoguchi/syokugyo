@@ -5,11 +5,37 @@
 GitHub名: `girinoguchi/telecareer-engine`  
 Cursorで選ぶときは検索欄に **`telecareer`** と入力してください（日本語名「テレキャリアエンジン」では出ません）。
 
+### Cursor で常に開けるようにする（All repositories）
+
+`telecareer-engine` を Cursor のリポジトリ一覧に **常時表示** するには、GitHub と Cursor の両方で **All repositories（すべてのリポジトリ）** を選ぶ必要があります。
+
+#### スマホで設定（3分）
+
+1. **GitHub** — https://github.com/settings/installations  
+   → **Cursor** → **Configure** → **All repositories** → **Save**
+
+2. **Cursor** — https://cursor.com/dashboard?tab=integrations  
+   → GitHub **Disconnect** → **Connect** → **All repositories**
+
+3. **開く** — https://cursor.com/agents  
+   → 新規 Agent → 検索: **`telecareer`**
+
+手順の全文: `npm run ensure:cursor:guide`
+
+#### Mac/PC で自動設定
+
+```bash
+gh auth login
+npm run ensure:cursor:all
+```
+
+実行後、手順 2 の Cursor 再接続を行ってください。
+
 ### Cursor でこのリポジトリを選ぶ（スマホ開発）
 
 **スマホだけで開発する場合**は [cursor.com/agents](https://cursor.com/agents) を Safari / Chrome で開き、ホーム画面に追加するとアプリのように使えます。
 
-リポジトリ一覧に `telecareer-engine` が出ない場合、**GitHub 側だけで Cursor App を入れても Cursor 本体と同期されない**ことが多いです。次の順番で試してください。
+リポジトリ一覧に `telecareer-engine` が出ない場合、**All repositories になっていない**か、**Cursor ダッシュボードから再接続していない**可能性があります。
 
 #### 手順 1（最重要）— Cursor ダッシュボードから接続
 
