@@ -285,7 +285,9 @@ function avatarHTML(code, opts){
   if(u){
     const fallback = (AVATARS[code] || "").replace(/"/g, "&quot;");
     const lazy = opts.eager ? "" : ' loading="lazy"';
-    const cls = opts.large ? "avatar-photo avatar-photo--lg" : "avatar-photo";
+    let cls = "avatar-photo";
+    if(opts.large) cls += " avatar-photo--lg";
+    if(opts.thumb) cls += " avatar-photo--thumb";
     return `<img class="${cls}" src="${u}" alt=""${lazy} decoding="async" onerror="this.outerHTML='${fallback}'">`;
   }
   return AVATARS[code] || "";
@@ -300,7 +302,7 @@ let idx = 0;
 const answers = new Array(QUESTIONS.length).fill(null); // store chosen scale value
 
 /* ----- lead capture (WordPress 連携) ----- */
-window.CTF = window.CTF || { restUrl:"", nonce:"", resumeUrl:"/" };
+window.CTF = window.CTF || { restUrl:"", nonce:"", resumeUrl:"/", pageUrl:"" };
 let ctfCode = "";       // 現在の結果コード（例: PLOD）
 let ctfTypeName = "";   // 現在の結果タイプ名
 let ctfJob = "";        // 現在の職種ラベル
@@ -361,6 +363,7 @@ function ctfResetApp(){
   idx = 0;
   answers.fill(null);
   updateProgress();
+  resetShareMeta();
   setAppMode("intro");
   show("intro");
 }
@@ -423,7 +426,7 @@ function show(stageId){
   } else go();
 }
 
-function start(){ idx=0; answers.fill(null); show("quiz"); renderQ(); }
+function start(){ idx=0; answers.fill(null); resetShareMeta(); show("quiz"); renderQ(); }
 
 function updateProgress(){
   const n = idx + 1;
@@ -559,6 +562,28 @@ function score(){
   });
 }
 
+function playCelebrate(cb){
+  if(reducedMotion()){
+    cb();
+    return;
+  }
+  const el = $("ctfCelebrate");
+  if(!el){
+    cb();
+    return;
+  }
+  const colors = ["var(--agree)","var(--disagree)","var(--coral)","var(--grp-pl)","var(--grp-pc)","var(--grp-tl)","var(--grp-tc)"];
+  el.innerHTML = Array.from({ length: 28 }, (_, i)=>
+    `<i class="ctf-confetti" style="--i:${i};--c:${colors[i % colors.length]}"></i>`
+  ).join("");
+  el.hidden = false;
+  setTimeout(()=>{
+    el.hidden = true;
+    el.innerHTML = "";
+    cb();
+  }, 780);
+}
+
 function finish(){
   const bar = $("bar");
   const qpct = $("qpct");
@@ -572,7 +597,58 @@ function finish(){
   const res = score();
   const code = res.map(r=>r.key).join("");
   renderResult(code, res);
-  show("result");
+  playCelebrate(()=>show("result"));
+}
+
+function absUrl(path){
+  if(!path) return "";
+  if(/^https?:\/\//i.test(path)) return path;
+  try { return new URL(path, location.origin).href; }
+  catch(e){ return path; }
+}
+
+function getShareUrl(code){
+  const base = (window.CTF && CTF.pageUrl) ? CTF.pageUrl : location.href.split("?")[0].split("#")[0];
+  const u = new URL(base, location.origin);
+  u.search = "";
+  u.hash = "";
+  if(code) u.searchParams.set("t", code);
+  return u.toString();
+}
+
+function setMeta(attr, key, content){
+  if(!content) return;
+  let el = document.querySelector(`meta[${attr}="${key}"]`);
+  if(!el){
+    el = document.createElement("meta");
+    el.setAttribute(attr, key);
+    document.head.appendChild(el);
+  }
+  el.setAttribute("content", content);
+}
+
+function updateShareMeta(code, job, name){
+  const title = `私の仕事タイプは「${job}」（${code}）`;
+  document.title = title + " | キャリア・タイプ診断";
+  const desc = `${name} — 32問の職業タイプ診断の結果`;
+  const url = getShareUrl(code);
+  const img = absUrl(typeImageUrl(code));
+  setMeta("property", "og:title", title);
+  setMeta("property", "og:description", desc);
+  setMeta("property", "og:url", url);
+  setMeta("property", "og:type", "website");
+  if(img) setMeta("property", "og:image", img);
+  setMeta("name", "twitter:card", "summary_large_image");
+  setMeta("name", "twitter:title", title);
+  setMeta("name", "twitter:description", desc);
+  if(img) setMeta("name", "twitter:image", img);
+  history.replaceState(null, "", url);
+}
+
+function resetShareMeta(){
+  document.title = "職業タイプ診断 | キャリア・タイプ診断";
+  const base = (window.CTF && CTF.pageUrl) ? CTF.pageUrl : location.pathname;
+  history.replaceState(null, "", base);
 }
 
 function shareText(code, job, name){
@@ -581,12 +657,12 @@ function shareText(code, job, name){
 
 function shareX(){
   const text = encodeURIComponent(shareText(ctfCode, ctfJob, ctfTypeName));
-  const url = encodeURIComponent(location.href.split("#")[0]);
+  const url = encodeURIComponent(getShareUrl(ctfCode));
   window.open(`https://twitter.com/intent/tweet?text=${text}&url=${url}`, "_blank", "noopener,noreferrer");
 }
 
 function shareCopy(){
-  const msg = shareText(ctfCode, ctfJob, ctfTypeName) + "\n" + location.href.split("#")[0];
+  const msg = shareText(ctfCode, ctfJob, ctfTypeName) + "\n" + getShareUrl(ctfCode);
   if(navigator.clipboard && navigator.clipboard.writeText){
     navigator.clipboard.writeText(msg).then(()=>{
       const el = $("shareMsg");
@@ -730,6 +806,7 @@ function renderResult(code, res){
   ctfCode = code;
   ctfTypeName = t.name;
   ctfJob = job;
+  updateShareMeta(code, job, t.name);
 
   const bars = res.map(r=>{
     const win = r.winner==="p1" ? r.ax.p1 : r.ax.p2;
@@ -890,7 +967,7 @@ function renderGallery(){
     const cards = g.codes.map(code=>{
       const t=TYPES[code];
       return `<button class="tcard" type="button" onclick="showTypePreview('${code}')" aria-label="${JOBS[code]} ${code}">
-        <div class="avatar" role="img" aria-hidden="true">${avatarHTML(code, { svgOnly: true })}</div>
+        <div class="avatar" role="img" aria-hidden="true">${avatarHTML(code, { thumb: true })}</div>
         <div class="tjob">${JOBS[code]}</div>
         <div class="tcode">${code}</div>
       </button>`;
@@ -923,13 +1000,26 @@ function renderGallery(){
   }
 }
 
-function showTypePreview(code){
-  const fakeRes = code.split("").map((ch,i)=>{
+function fakeResultForCode(code){
+  return code.split("").map((ch, i)=>{
     const ax = AXES[i];
     const isP1 = ax.p1.k === ch;
-    return {ax, winner:isP1?"p1":"p2", strength:62, key:ch};
+    return { ax, winner: isP1 ? "p1" : "p2", strength: 62, key: ch };
   });
-  renderResult(code, fakeRes);
+}
+
+function initFromUrl(){
+  const params = new URLSearchParams(location.search);
+  const hash = location.hash.replace(/^#/, "").toUpperCase();
+  const raw = (params.get("t") || params.get("type") || hash || "").toUpperCase();
+  if(!raw || !TYPES[raw]) return false;
+  renderResult(raw, fakeResultForCode(raw));
+  show("result");
+  return true;
+}
+
+function showTypePreview(code){
+  renderResult(code, fakeResultForCode(code));
   show("result");
 }
 function initCast(){
@@ -942,4 +1032,4 @@ function initCast(){
   }).join("");
 }
 initCast();
-setAppMode("intro");
+if(!initFromUrl()) setAppMode("intro");

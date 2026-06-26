@@ -471,6 +471,27 @@
   .avatar img.avatar-photo{width:100%;aspect-ratio:3/2;object-fit:cover;object-position:center top;border-radius:12px;display:block}
   .avatar--lg img.avatar-photo,.avatar img.avatar-photo--lg{border-radius:16px}
 
+  .avatar img.avatar-photo--thumb{border-radius:10px}
+  .tcard .avatar-photo--thumb{aspect-ratio:3/2;object-fit:cover;object-position:center top}
+
+  /* ---------- celebration ---------- */
+  .ctf-celebrate{
+    position:fixed;inset:0;pointer-events:none;z-index:99980;overflow:hidden;
+  }
+  .ctf-confetti{
+    position:absolute;top:-8%;left:calc(10% + (var(--i) * 2.9%));
+    width:9px;height:14px;border-radius:2px;
+    background:var(--c,var(--coral));
+    opacity:.92;
+    animation:confettiFall .85s cubic-bezier(.22,.75,.3,1) forwards;
+    animation-delay:calc(var(--i) * 16ms);
+    transform:rotate(calc(var(--i) * 19deg));
+  }
+  @keyframes confettiFall{
+    0%{opacity:1}
+    100%{top:108%;opacity:0;transform:translateX(calc((var(--i) - 14) * 14px)) rotate(calc(var(--i) * 48deg))}
+  }
+
   /* ---------- lead capture / resume CTA (WordPress) ---------- */
   .ctf-next{margin-top:18px;padding:22px 20px;overflow:hidden}
   .ctf-next-grid{display:grid;gap:18px}

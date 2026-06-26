@@ -94,4 +94,6 @@
   <!-- ===== GALLERY ===== -->
   <section class="stage" id="gallery"></section>
 
+  <div class="ctf-celebrate" id="ctfCelebrate" aria-hidden="true" hidden></div>
+
 </div>
