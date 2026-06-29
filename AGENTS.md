@@ -34,6 +34,19 @@ docker compose exec wpcli wp rewrite flush --allow-root
 2. ページ属性で「職業診断 全画面（ヘッダー/フッターなし）」テンプレートを選択
 3. ブラウザで診断フロー（32問 → 結果表示）を確認
 
+### スマホ確認（Docker 不要）
+
+```bash
+bash demo/serve-mobile.sh
+```
+
+表示された URL をスマホのブラウザで開くか、`/mobile` の QR コードを読み取ります。
+
+```bash
+# 手動で起動する場合
+php -S 0.0.0.0:8080 -t . demo/router.php
+```
+
 ### 開発時の注意
 
 - PHP / JS / CSS を編集したらブラウザをリロード（プラグインはマウントされているため再ビルド不要）
